@@ -65,6 +65,7 @@
 #define json_unaligned_4(p)  (reinterpret_cast<intptr_t>(p) & 0x3)
 #define json_unaligned_8(p)  (reinterpret_cast<intptr_t>(p) & 0x7)
 #define json_unaligned_16(p) (reinterpret_cast<intptr_t>(p) & 0xF)
+#define json_unaligned_32(p) (reinterpret_cast<intptr_t>(p) & 0x1F)
 
 // http://sourceforge.net/p/predef/wiki/Architectures/
 // http://nadeausoftware.com/articles/2012/02/c_c_tip_how_detect_processor_type_using_compiler_predefined_macros

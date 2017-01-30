@@ -48,6 +48,7 @@ BOOST_AUTO_TEST_CASE(benchmark_json_detail_skip_any_simple_characters) {
   JSON_BENCHMARK(1e6, [&]{
     auto context = decode_context(json.data(), json.data() + json.size());
     *const_cast<bool *>(&context.has_sse42) = false;
+    *const_cast<bool *>(&context.has_avx2) = false;
     detail::skip_any_simple_characters(context);
     n += context.offset();
   });
@@ -60,6 +61,20 @@ BOOST_AUTO_TEST_CASE(benchmark_json_detail_skip_any_simple_characters_sse42) {
   volatile size_t n = 0;
   JSON_BENCHMARK(1e6, [&]{
     auto context = decode_context(json.data(), json.data() + json.size());
+    *const_cast<bool *>(&context.has_sse42) = true;
+    *const_cast<bool *>(&context.has_avx2) = false;
+    detail::skip_any_simple_characters(context);
+    n += context.offset();
+  });
+}
+
+BOOST_AUTO_TEST_CASE(benchmark_json_detail_skip_any_simple_characters_avx2) {
+  const auto json = generate_simple_string(8192);
+  volatile size_t n = 0;
+  JSON_BENCHMARK(1e6, [&] {
+    auto context = decode_context(json.data(), json.data() + json.size());
+    *const_cast<bool *>(&context.has_sse42) = false;
+    *const_cast<bool *>(&context.has_avx2) = true;
     detail::skip_any_simple_characters(context);
     n += context.offset();
   });
@@ -88,6 +103,7 @@ BOOST_AUTO_TEST_CASE(benchmark_json_detail_skip_any_whitespace) {
   JSON_BENCHMARK(1e6, [&]{
     auto context = decode_context(json.data(), json.data() + json.size());
     *const_cast<bool *>(&context.has_sse42) = false;
+    *const_cast<bool *>(&context.has_avx2) = false;
     detail::skip_any_whitespace(context);
     n += context.offset();
   });
@@ -100,6 +116,20 @@ BOOST_AUTO_TEST_CASE(benchmark_json_detail_skip_any_whitespace_sse42) {
   volatile size_t n = 0;
   JSON_BENCHMARK(1e6, [&]{
     auto context = decode_context(json.data(), json.data() + json.size());
+    *const_cast<bool *>(&context.has_sse42) = true;
+    *const_cast<bool *>(&context.has_avx2) = false;
+    detail::skip_any_whitespace(context);
+    n += context.offset();
+  });
+}
+
+BOOST_AUTO_TEST_CASE(benchmark_json_detail_skip_any_whitespace_avx2) {
+  const auto json = generate_whitespace_string(8192);
+  volatile size_t n = 0;
+  JSON_BENCHMARK(1e6, [&] {
+    auto context = decode_context(json.data(), json.data() + json.size());
+    *const_cast<bool *>(&context.has_sse42) = false;
+    *const_cast<bool *>(&context.has_avx2) = true;
     detail::skip_any_whitespace(context);
     n += context.offset();
   });

@@ -26,6 +26,7 @@ namespace detail {
 void skip_any_simple_characters_scalar(decode_context &context);
 #if defined(json_arch_x86)
 void skip_any_simple_characters_sse42(decode_context &context);
+void skip_any_simple_characters_avx2(decode_context &context);
 #endif  // defined(json_arch_x86)
 
 /**
@@ -37,7 +38,9 @@ void skip_any_simple_characters_sse42(decode_context &context);
  */
 json_force_inline void skip_any_simple_characters(decode_context &context) {
 #if defined(json_arch_x86)
-  if (json_likely(context.has_sse42)) {
+  if (json_likely(context.has_avx2)) {
+    return skip_any_simple_characters_avx2(context);
+  } else if (json_likely(context.has_sse42)) {
     return skip_any_simple_characters_sse42(context);
   }
 #endif  // defined(json_arch_x86)
@@ -47,6 +50,7 @@ json_force_inline void skip_any_simple_characters(decode_context &context) {
 void skip_any_whitespace_scalar(decode_context &context);
 #if defined(json_arch_x86)
 void skip_any_whitespace_sse42(decode_context &context);
+void skip_any_whitespace_avx2(decode_context &context);
 #endif  // defined(json_arch_x86)
 
 /**
@@ -58,7 +62,9 @@ void skip_any_whitespace_sse42(decode_context &context);
  */
 json_force_inline void skip_any_whitespace(decode_context &context) {
 #if defined(json_arch_x86)
-  if (json_likely(context.has_sse42)) {
+  if (json_likely(context.has_avx2)) {
+    return skip_any_whitespace_avx2(context);
+  } else if (json_likely(context.has_sse42)) {
     return skip_any_whitespace_sse42(context);
   }
 #endif  // defined(json_arch_x86)

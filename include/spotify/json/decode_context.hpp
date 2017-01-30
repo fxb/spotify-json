@@ -33,12 +33,14 @@ namespace json {
 struct decode_context final {
   decode_context(const char *begin, const char *end)
       : has_sse42(detail::cpuid().has_sse42()),
+        has_avx2(detail::cpuid().has_avx2()),
         position(begin),
         begin(begin),
         end(end) {}
 
   decode_context(const char *data, size_t size)
       : has_sse42(detail::cpuid().has_sse42()),
+        has_avx2(detail::cpuid().has_avx2()),
         position(data),
         begin(data),
         end(data + size) {}
@@ -56,6 +58,7 @@ struct decode_context final {
   }
 
   const bool has_sse42;
+  const bool has_avx2;
   const char *position;
   const char *const begin;
   const char *const end;

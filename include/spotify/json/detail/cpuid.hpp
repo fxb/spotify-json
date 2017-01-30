@@ -50,7 +50,21 @@ class cpuid {
   }
 
   bool has_sse42() const {
-    return has_feature_bit(cpu_register::ecx, cpu_feature_bit::sse_42);
+    return has_feature_bit(cpu_register::ecx, cpu_feature_bit::sse42);
+  }
+
+  bool has_avx2() {
+    // AVX not enabled in OS
+    if ((_xgetbv(0) & 6) != 6) {
+      return false;
+    }
+    if (!has_feature_bit(cpu_register::ecx, cpu_feature_bit::avx)) {
+      return false;
+    }
+    // call cpuid leaf 7 for feature flags
+    const uint32_t cpuid_function(7);
+    ::__cpuid(reinterpret_cast<int *>(_registers.data()), cpuid_function);
+    return has_feature_bit(cpu_register::ebx, cpu_feature_bit::avx2);
   }
 
  private:
@@ -65,7 +79,9 @@ class cpuid {
 
   struct cpu_feature_bit {
     enum type {
-      sse_42 = 20,
+      sse42 = 20,
+      avx = 28,
+      avx2 = 5,
     };
   };
 

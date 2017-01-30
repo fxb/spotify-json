@@ -25,6 +25,16 @@
 namespace spotify {
 namespace json {
 namespace detail {
+  
+json_force_inline unsigned long json_ffs(unsigned x) {
+#if defined(_MSC_VER)
+  unsigned long offset;
+  _BitScanForward(&offset, x);
+  return offset;
+#elif defined(__GNUC__)
+   return (__builtin_ffs(x) - 1);
+#endif  // defined(_MSC_VER)
+}
 
 void skip_any_simple_characters_sse42(decode_context &context) {
   const auto end = context.end;
@@ -57,6 +67,46 @@ void skip_any_simple_characters_sse42(decode_context &context) {
   done_x: context.position = pos;
 }
 
+void skip_any_simple_characters_avx2(decode_context &context) {
+  const auto end = context.end;
+  auto pos = context.position;
+
+  for (; pos < end && json_unaligned_32(pos); ++pos) {
+    if (*pos == '"' || *pos == '\\') {
+      context.position = pos;
+      return;
+    }
+  }
+
+  const auto a = _mm256_set1_epi8('"');
+  const auto b = _mm256_set1_epi8('\\');
+
+  for (; end - pos >= 32; pos += 32) {
+    const auto chunk = _mm256_load_si256(reinterpret_cast<const __m256i *>(pos));
+
+    __m256i ra = _mm256_cmpeq_epi8(chunk, a);
+    __m256i rb = _mm256_cmpeq_epi8(chunk, b);
+    __m256i r = _mm256_or_si256(a, b);
+
+    const auto mask = _mm256_movemask_epi8(r);
+    if (mask == decltype(mask)(0)) {
+      continue;
+    }
+
+    const auto index = json_ffs(mask);
+    if (index != 16) {
+      context.position = pos + index;
+      return;
+    }
+  }
+
+  while (pos < end && *pos != '"' && *pos != '\\') {
+    ++pos;
+  }
+
+  context.position = pos;
+}
+
 void skip_any_whitespace_sse42(decode_context &context) {
   const auto end = context.end;
   auto pos = context.position;
@@ -75,6 +125,52 @@ void skip_any_whitespace_sse42(decode_context &context) {
     const auto chunk = _mm_load_si128(reinterpret_cast<const __m128i *>(pos));
     constexpr auto flags = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_NEGATIVE_POLARITY | _SIDD_LEAST_SIGNIFICANT;
     const auto index = _mm_cmpistri(chars, chunk, flags);
+    if (index != 16) {
+      context.position = pos + index;
+      return;
+    }
+  }
+
+  while (pos < end && is_space(*pos)) {
+    ++pos;
+  }
+
+  context.position = pos;
+}
+
+void skip_any_whitespace_avx2(decode_context &context) {
+  const auto end = context.end;
+  auto pos = context.position;
+
+  for (; pos < end && json_unaligned_32(pos); ++pos) {
+    if (!is_space(*pos)) {
+      context.position = pos;
+      return;
+    }
+  }
+
+  const auto a = _mm256_set1_epi8(' ');
+  const auto b = _mm256_set1_epi8('\t');
+  const auto c = _mm256_set1_epi8('\n');
+  const auto d = _mm256_set1_epi8('\r');
+
+  for (; end - pos >= 32; pos += 32) {
+    const auto chunk = _mm256_load_si256(reinterpret_cast<const __m256i *>(pos));
+
+    __m256i ra = _mm256_cmpeq_epi8(chunk, a);
+    __m256i rb = _mm256_cmpeq_epi8(chunk, b);
+    __m256i rc = _mm256_cmpeq_epi8(chunk, c);
+    __m256i rd = _mm256_cmpeq_epi8(chunk, d);
+    __m256i r = _mm256_or_si256(
+                    _mm256_or_si256(ra, rb),
+                    _mm256_or_si256(rc, rd));
+
+    const auto mask = _mm256_movemask_epi8(r);
+    if (mask == decltype(mask)(-1)) {
+      continue;
+    }
+    
+    const auto index = json_ffs(~mask);
     if (index != 16) {
       context.position = pos + index;
       return;
