@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2016 Spotify AB
+# Copyright (c) 2014-2017 Spotify AB
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -22,6 +22,7 @@ set(spotify_json_test_SOURCES
   src/test_any_codec.cpp
   src/test_any_value.cpp
   src/test_array.cpp
+  src/test_array_value.cpp
   src/test_bitset.cpp
   src/test_boolean.cpp
   src/test_boost.cpp

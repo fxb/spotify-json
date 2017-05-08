@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2016 Spotify AB
+# Copyright (c) 2014-2017 Spotify AB
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -22,6 +22,7 @@ set(json_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include)
 
 set(json_HEADERS
   include/spotify/json.hpp
+  include/spotify/json/codec.hpp
   include/spotify/json/default_codec.hpp
   include/spotify/json/decode.hpp
   include/spotify/json/decode_exception.hpp
@@ -31,6 +32,9 @@ set(json_HEADERS
   include/spotify/json/encode_exception.hpp
   include/spotify/json/encoded_value.hpp
   include/spotify/json/json.hpp
+  include/spotify/json/type.hpp
+  include/spotify/json/value.hpp
+  include/spotify/json/value_exception.hpp
   )
 
 set(json_SOURCES
@@ -88,10 +92,23 @@ set(json_detail_SSE42_SOURCES
   src/detail/skip_chars_sse42.cpp
   )
 
+set(json_value_HEADERS
+  include/spotify/json/value/array.hpp
+  include/spotify/json/value/boolean.hpp
+  include/spotify/json/value/detail.hpp
+  include/spotify/json/value/number.hpp
+  include/spotify/json/value/object.hpp
+  include/spotify/json/value/optional.hpp
+  include/spotify/json/value/string.hpp
+  include/spotify/json/value/value.hpp
+  include/spotify/json/value/value_cast.hpp
+  )
+
 set(json_all_HEADERS
   ${json_HEADERS}
   ${json_codec_HEADERS}
   ${json_detail_HEADERS}
+  ${json_value_HEADERS}
   )
 
 set(json_all_SOURCES
@@ -103,6 +120,7 @@ set(json_all_SOURCES
 source_group(spotify\\json         FILES ${json_HEADERS})
 source_group(spotify\\json\\codec  FILES ${json_codec_HEADERS})
 source_group(spotify\\json\\detail FILES ${json_detail_HEADERS})
+source_group(spotify\\json\\value  FILES ${json_value_HEADERS})
 
 set(json_library_TARGET "spotify-json")
 add_library(${json_library_TARGET} STATIC ${json_all_HEADERS} ${json_all_SOURCES})

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Spotify AB
+ * Copyright (c) 2017 Spotify AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,16 +14,17 @@
  * the License.
  */
 
-#pragma once
+#include <boost/test/unit_test.hpp>
 
-#include <spotify/json/codec.hpp>
-#include <spotify/json/decode.hpp>
-#include <spotify/json/decode_exception.hpp>
-#include <spotify/json/decode_context.hpp>
-#include <spotify/json/default_codec.hpp>
-#include <spotify/json/encode.hpp>
-#include <spotify/json/encode_exception.hpp>
-#include <spotify/json/encode_context.hpp>
-#include <spotify/json/encoded_value.hpp>
-#include <spotify/json/value.hpp>
-#include <spotify/json/value_exception.hpp>
+#include <spotify/json/value/array.hpp>
+#include <spotify/json/value/value_cast.hpp>
+
+BOOST_AUTO_TEST_SUITE(spotify)
+BOOST_AUTO_TEST_SUITE(json)
+
+BOOST_AUTO_TEST_CASE(json_value_xxx) {
+  const auto a = optional<number>();
+}
+
+BOOST_AUTO_TEST_SUITE_END()  // json
+BOOST_AUTO_TEST_SUITE_END()  // spotify

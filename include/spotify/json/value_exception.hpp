@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Spotify AB
+ * Copyright (c) 2017 Spotify AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,14 +16,24 @@
 
 #pragma once
 
-#include <spotify/json/codec.hpp>
-#include <spotify/json/decode.hpp>
-#include <spotify/json/decode_exception.hpp>
-#include <spotify/json/decode_context.hpp>
-#include <spotify/json/default_codec.hpp>
-#include <spotify/json/encode.hpp>
-#include <spotify/json/encode_exception.hpp>
-#include <spotify/json/encode_context.hpp>
-#include <spotify/json/encoded_value.hpp>
-#include <spotify/json/value.hpp>
-#include <spotify/json/value_exception.hpp>
+#include <stdexcept>
+#include <string>
+
+#include <spotify/json/detail/macros.hpp>
+
+namespace spotify {
+namespace json {
+
+/**
+ * value_exception objects are thrown when casting a value fails, for example
+ * when trying to interpret a number value as an array value.
+ */
+class value_exception final : public std::runtime_error {
+ public:
+  template <typename string_type>
+  explicit json_never_inline value_exception(const string_type &what)
+      : runtime_error(what) {}
+};
+
+}  // namespace json
+}  // namespace spotify
