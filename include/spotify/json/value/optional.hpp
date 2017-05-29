@@ -18,8 +18,8 @@
 
 #include <utility>
 
-#include <spotify/json/value/value.hpp>
 #include <spotify/json/value_exception.hpp>
+#include <spotify/json/value/value.hpp>
 
 namespace spotify {
 namespace json {

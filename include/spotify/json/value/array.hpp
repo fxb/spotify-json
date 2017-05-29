@@ -25,6 +25,7 @@
 
 #include <spotify/json/type.hpp>
 #include <spotify/json/value_exception.hpp>
+#include <spotify/json/value/construct.hpp>
 #include <spotify/json/value/value.hpp>
 
 namespace spotify {
@@ -43,7 +44,7 @@ struct array final : public value {
 
   void clear();
 
-  template <class ...arg_types>
+  template <typename ...arg_types>
   void push_back(arg_types &&...args);
 
   void reserve(std::size_t size);
@@ -90,11 +91,10 @@ void array<value_type>::clear() {
 }
 
 template <typename value_type>
-template <class ...arg_types>
+template <typename ...arg_types>
 void array<value_type>::push_back(arg_types &&...args) {
   reserve(size() + 1);  // may throw std::bad_alloc
-  const auto ptr = &_.as_array.elements.ptr[size()];
-  new (ptr) value_type(std::forward<arg_types>(args)...);
+  reinterpret_cast<value_type &>(_.as_array.elements.ptr[size()]) = detail::construct<value_type>(std::forward<arg_types>(args)...);
   _.as_array.size++;
 }
 

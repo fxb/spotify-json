@@ -18,6 +18,7 @@
 
 #include <utility>
 
+#include <spotify/json/value_exception.hpp>
 #include <spotify/json/value/array.hpp>
 #include <spotify/json/value/boolean.hpp>
 #include <spotify/json/value/detail.hpp>
@@ -26,7 +27,6 @@
 #include <spotify/json/value/optional.hpp>
 #include <spotify/json/value/string.hpp>
 #include <spotify/json/value/value.hpp>
-#include <spotify/json/value_exception.hpp>
 
 namespace spotify {
 namespace json {
@@ -112,7 +112,7 @@ struct cast_impl<boolean> {
   }
 };
 
-}  // namespace
+}  // namespace detail
 
 /*
  * value_cast<type &>(...)

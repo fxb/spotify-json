@@ -45,5 +45,19 @@ boolean::operator bool() const {
   return _.as_value.type == detail::value_union::value_true;
 }
 
+namespace detail {
+
+template <>
+struct construct_impl<boolean> {
+  static boolean construct(bool b) {
+    return boolean(b);
+  }
+};
+
+boolean construct_impl<value>::construct(bool b) {
+  return construct_impl<boolean>::construct(b);
+}
+
+}  // namespace detail
 }  // namespace json
 }  // namespace spotify

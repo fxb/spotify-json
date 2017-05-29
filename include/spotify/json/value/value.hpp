@@ -21,11 +21,13 @@
 #include <cstdlib>
 #include <string>
 #include <utility>
+#include <type_traits>
 
 #include <spotify/json/encoded_value.hpp>
 #include <spotify/json/type.hpp>
-#include <spotify/json/value/detail.hpp>
 #include <spotify/json/value_exception.hpp>
+#include <spotify/json/value/construct.hpp>
+#include <spotify/json/value/detail.hpp>
 
 namespace spotify {
 namespace json {
@@ -34,6 +36,10 @@ namespace detail {
 template <typename value_type> struct cast_impl;
 
 }  // namespace detail
+
+struct boolean;
+struct number;
+struct string;
 
 struct value {
  public:
@@ -67,5 +73,31 @@ inline type value::type() const {
   }
 }
 
+namespace detail {
+
+template <typename value_type, typename ...arg_types>
+using enable_construct_for = typename std::enable_if<std::is_constructible<value_type, arg_types...>::value && 0 < sizeof...(arg_types)>::type;
+
+template <>
+struct construct_impl<value> {
+  static boolean construct(bool b);
+
+  template <typename arg_type, typename = enable_construct_for<number, arg_type>>
+  static number construct(arg_type &&arg);
+
+  template <typename ...arg_types, typename = enable_construct_for<string, arg_types...>>
+  static string construct(arg_types &&...args);
+
+  template <typename arg_type, typename = typename std::enable_if<std::is_base_of<value, typename std::remove_reference<arg_type>::type>::value>::type>
+  static value construct(arg_type &&v) {
+    return value(v);
+  }
+
+  static value construct() {
+    return value();
+  }
+};
+
+}  // namespace detail
 }  // namespace json
 }  // namespace spotify

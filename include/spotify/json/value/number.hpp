@@ -106,6 +106,21 @@ number::operator number::number_type<T>() const {
     default: json_unreachable(); return 0;
   }
 }
+namespace detail {
 
+template <>
+struct construct_impl<number> {
+  template <typename arg_type>
+  static number construct(arg_type &&arg) {
+    return number(arg);
+  }
+};
+
+template <typename arg_type, typename>
+number construct_impl<value>::construct(arg_type &&arg) {
+  return construct_impl<number>::construct(arg);
+}
+
+}  // namespace detail
 }  // namespace json
 }  // namespace spotify
