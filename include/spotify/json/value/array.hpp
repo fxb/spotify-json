@@ -42,7 +42,10 @@ struct array final : public value {
   const value_type &operator[](std::size_t index) const;
 
   void clear();
-  void push_back(value_type &&value);
+
+  template <class ...arg_types>
+  void push_back(arg_types &&...args);
+
   void reserve(std::size_t size);
 
   using iterator = value_type *;
@@ -87,9 +90,11 @@ void array<value_type>::clear() {
 }
 
 template <typename value_type>
-void array<value_type>::push_back(value_type &&value) {
+template <class ...arg_types>
+void array<value_type>::push_back(arg_types &&...args) {
   reserve(size() + 1);  // may throw std::bad_alloc
-  _.as_array.elements.ptr[size()] = std::forward(value);
+  const auto ptr = &_.as_array.elements.ptr[size()];
+  new (ptr) value_type(std::forward<arg_types>(args)...);
   _.as_array.size++;
 }
 
