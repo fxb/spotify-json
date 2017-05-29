@@ -76,7 +76,7 @@ std::size_t array<value_type>::size() const {
 
 template <typename value_type>
 value_type &array<value_type>::operator[](std::size_t index) {
-  return static_cast<value_type &>(_.as_array.elements.ptr[index]);
+  return reinterpret_cast<value_type &>(_.as_array.elements.ptr[index]);
 }
 
 template <typename value_type>

@@ -48,6 +48,8 @@ struct value {
   detail::value_union _;
 };
 
+static_assert(sizeof(value) == sizeof(detail::value_union), "size of value should equal size of value_union");
+
 inline value::value() : value(detail::value_union::value_null) {}
 
 inline type value::type() const {
