@@ -105,7 +105,7 @@ struct cast_impl<boolean> {
 
 template <typename target_type>
 target_type &&value_cast(value &&source) {
-  using cast_impl = detail::cast_impl<target_type>;
+  using cast_impl = detail::cast_impl<typename std::remove_reference<target_type>::type>;
   if (auto ptr = cast_impl::cast(&source)) {
     return std::move(*ptr);
   } else {
@@ -115,7 +115,7 @@ target_type &&value_cast(value &&source) {
 
 template <typename target_type>
 target_type &value_cast(value &source) {
-  using cast_impl = detail::cast_impl<target_type>;
+  using cast_impl = detail::cast_impl<typename std::remove_reference<target_type>::type>;
   if (auto ptr = cast_impl::cast(&source)) {
     return *ptr;
   } else {
@@ -134,7 +134,7 @@ const target_type &value_cast(const value &source) {
 
 template <typename target_type>
 target_type *value_cast(value *source) {
-  using cast_impl = detail::cast_impl<target_type>;
+  using cast_impl = detail::cast_impl<typename std::remove_reference<target_type>::type>;
   return cast_impl::cast(source);
 }
 
