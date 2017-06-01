@@ -38,40 +38,48 @@ struct cast_impl {};
 template <>
 struct cast_impl<string> {
   using target_type = string;
-  static constexpr auto message = "value is not a string";
 
   static target_type *cast(value *source) {
     const auto is_string = (source->_.as_value.type <= value_union::string);
     return is_string ? static_cast<target_type *>(source) : nullptr;
+  }
+
+  static constexpr const char *message() {
+    return "value is not a string";
   }
 };
 
 template <typename value_type>
 struct cast_impl<array<value_type>> {
   using target_type = array<value_type>;
-  static constexpr auto message = "value is not an array";
 
   static target_type *cast(value *source) {
     const auto is_array = (source->_.as_value.type == value_union::array);
     return is_array ? static_cast<target_type *>(source) : nullptr;
+  }
+
+  static constexpr const char *message() {
+    return "value is not an array";
   }
 };
 
 template <typename value_type>
 struct cast_impl<object<value_type>> {
   using target_type = object<value_type>;
-  static constexpr auto message = "value is not an object";
 
   static target_type *cast(value *source) {
     const auto is_object = (source->_.as_value.type == value_union::object);
     return is_object ? static_cast<target_type *>(source) : nullptr;
+  }
+
+  static constexpr const char *message() {
+    return "value is not an object";
   }
 };
 
 template <>
 struct cast_impl<number> {
   using target_type = number;
-  static constexpr auto message = "value is not a number";
 
   static target_type *cast(value *source) {
     switch (source->_.as_value.type) {
@@ -81,12 +89,15 @@ struct cast_impl<number> {
       default: return nullptr;
     }
   }
+
+  static constexpr const char *message() {
+    return "value is not a number";
+  }
 };
 
 template <>
 struct cast_impl<boolean> {
   using target_type = boolean;
-  static constexpr auto message = "value is not a boolean";
 
   static target_type *cast(value *source) {
     switch (source->_.as_value.type) {
@@ -94,6 +105,10 @@ struct cast_impl<boolean> {
       case value_union::value_true:  return static_cast<boolean *>(source);
       default: return nullptr;
     }
+  }
+
+  static constexpr const char *message() {
+    return "value is not a boolean";
   }
 };
 
@@ -109,7 +124,7 @@ target_type &&value_cast(value &&source) {
   if (auto ptr = cast_impl::cast(&source)) {
     return std::move(*ptr);
   } else {
-    throw value_exception(cast_impl::message);
+    throw value_exception(cast_impl::message());
   }
 }
 
@@ -119,7 +134,7 @@ target_type &value_cast(value &source) {
   if (auto ptr = cast_impl::cast(&source)) {
     return *ptr;
   } else {
-    throw value_exception(cast_impl::message);
+    throw value_exception(cast_impl::message());
   }
 }
 
