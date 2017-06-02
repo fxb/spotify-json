@@ -16,16 +16,11 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
-#include <cstdlib>
-#include <string>
 #include <utility>
 #include <type_traits>
 
 #include <spotify/json/encoded_value.hpp>
 #include <spotify/json/type.hpp>
-#include <spotify/json/value_exception.hpp>
 #include <spotify/json/value/construct.hpp>
 #include <spotify/json/value/detail.hpp>
 

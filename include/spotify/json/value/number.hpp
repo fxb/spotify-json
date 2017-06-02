@@ -17,11 +17,8 @@
 #pragma once
 
 #include <cstdint>
-#include <type_traits>
 
 #include <spotify/json/detail/macros.hpp>
-#include <spotify/json/type.hpp>
-#include <spotify/json/value_exception.hpp>
 #include <spotify/json/value/value.hpp>
 
 namespace spotify {
