@@ -45,6 +45,9 @@ struct value {
  public:
   value();
 
+  template <typename arg_type>
+  value &operator=(arg_type &&arg);
+
   type type() const;
 
  protected:
@@ -55,6 +58,12 @@ struct value {
 };
 
 static_assert(sizeof(value) == sizeof(detail::value_union), "size of value should equal size of value_union");
+
+template <typename arg_type>
+inline value &value::operator=(arg_type &&arg) {
+  *this = detail::construct<value>(std::forward<arg_type>(arg));
+  return *this;
+}
 
 inline value::value() : value(detail::value_union::value_null) {}
 

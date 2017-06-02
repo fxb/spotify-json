@@ -31,6 +31,11 @@ value_type construct(arg_types &&...args) {
   return construct_impl::construct(std::forward<arg_types>(args)...);
 }
 
+template <typename value_type>
+void destruct(value_type *ptr) {
+  ptr->~value_type();
+}
+
 }  // namespace detail
 }  // namespace json
 }  // namespace spotify
