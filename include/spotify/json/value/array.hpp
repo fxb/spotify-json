@@ -122,12 +122,12 @@ void array<value_type>::reserve(std::size_t size) {
 
 template <typename value_type>
 typename array<value_type>::iterator array<value_type>::begin() {
-  return _.as_array.elements.ptr;
+  return reinterpret_cast<value_type *>(_.as_array.elements.ptr);
 }
 
 template <typename value_type>
 typename array<value_type>::iterator array<value_type>::end() {
-  return _.as_array.elements.ptr + size();
+  return reinterpret_cast<value_type *>(_.as_array.elements.ptr) + size();
 }
 
 template <typename value_type>
