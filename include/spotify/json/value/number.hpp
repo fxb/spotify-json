@@ -32,19 +32,31 @@ struct number final : public value {
   number();
   number(signed char n);
   number(signed short n);
+  number(signed int n);
   number(signed long n);
   number(signed long long n);
-  number(signed int n);
   number(unsigned char n);
   number(unsigned short n);
+  number(unsigned int n);
   number(unsigned long n);
   number(unsigned long long n);
-  number(unsigned int n);
   number(float n);
   number(double n);
 
-  template <typename T> using number_type = typename std::enable_if<std::is_arithmetic<T>::value>::type;
-  template <typename T> operator number_type<T>() const;
+  operator signed char() const;
+  operator signed short() const;
+  operator signed int() const;
+  operator signed long() const;
+  operator signed long long() const;
+  operator unsigned char() const;
+  operator unsigned short() const;
+  operator unsigned int() const;
+  operator unsigned long() const;
+  operator unsigned long long() const;
+  operator float() const;
+  operator double() const;
+
+  template <typename T> T as() const;
 };
 
 inline number::number() : number(0) {}
@@ -97,15 +109,64 @@ inline number::number(double n) : value(detail::value_union::number) {
   _.as_double.number = n;
 }
 
+inline number::operator signed char() const {
+  return as<signed char>();
+}
+
+inline number::operator signed short() const {
+  return as<signed short>();
+}
+
+inline number::operator signed int() const {
+  return as<signed int>();
+}
+
+inline number::operator signed long() const {
+  return as<signed long>();
+}
+
+inline number::operator signed long long() const {
+  return as<signed long long>();
+}
+
+inline number::operator unsigned char() const {
+  return as<unsigned char>();
+}
+
+inline number::operator unsigned short() const {
+  return as<unsigned short>();
+}
+
+inline number::operator unsigned int() const {
+  return as<unsigned int>();
+}
+
+inline number::operator unsigned long() const {
+  return as<unsigned long>();
+}
+
+inline number::operator unsigned long long() const {
+  return as<unsigned long long>();
+}
+
+inline number::operator float() const {
+  return as<float>();
+}
+
+inline number::operator double() const {
+  return as<double>();
+}
+
 template <typename T>
-number::operator number::number_type<T>() const {
+inline T number::as() const {
   switch (_.as_value.type) {
-    case detail::value_union::sint64: return T{_.as_sint64.number};
-    case detail::value_union::uint64: return T{_.as_uint64.number};
-    case detail::value_union::number: return T{_.as_double.number};
+    case detail::value_union::sint64: return static_cast<T>(_.as_sint64.number);
+    case detail::value_union::uint64: return static_cast<T>(_.as_uint64.number);
+    case detail::value_union::number: return static_cast<T>(_.as_double.number);
     default: json_unreachable(); return 0;
   }
 }
+
 namespace detail {
 
 template <>
