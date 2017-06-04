@@ -46,13 +46,16 @@ struct object final : public value {
   bool empty() const;
   std::size_t size() const;
 
-  value_type &operator[](const std::string &key);
-  const value_type &operator[](const std::string &key) const;
+  template <typename string_type>
+  value_type &operator[](string_type &&key);
+
+  template <typename string_type>
+  const value_type &operator[](string_type &&key) const;
 
   void clear();
 
-  template <typename key_type, typename ...arg_types>
-  std::pair<iterator, bool> emplace(key_type &&key, arg_types &&...args);
+  template <typename string_type, typename ...arg_types>
+  std::pair<iterator, bool> emplace(string_type &&key, arg_types &&...args);
 
   void reserve(std::size_t size);
 
@@ -62,14 +65,18 @@ struct object final : public value {
   const_iterator end() const;
 
  private:
-  iterator lower_bound(const std::string &key);
-
-  void move_up(iterator it) {
-    for (iterator pos = end(); pos != it; --pos) {
-      *pos = std::move(*(pos - 1));
-    }
+  template <typename string_type>
+  iterator find(const string_type &key) {
+    return std::find_if(begin(), end(), [&key](const entry_type &e) {
+      return std::strcmp(key.c_str(), e.first.c_str()) == 0;
+    });
   }
 
+  iterator find(const char *key) {
+    return std::find_if(begin(), end(), [&key](const entry_type &e) {
+      return std::strcmp(key, e.first.c_str()) == 0;
+    });
+  }
 };
 
 template <typename value_type>
@@ -90,18 +97,20 @@ std::size_t object<value_type>::size() const {
 }
 
 template <typename value_type>
-value_type &object<value_type>::operator[](const std::string &key) {
-  iterator it = lower_bound(key);
-  if (it != end() && std::strcmp(key.c_str(), it->first.c_str()) == 0) {
+template <typename string_type>
+value_type &object<value_type>::operator[](string_type &&key) {
+  iterator it = find(key);
+  if (it != end()) {
     return it->second;
   } else {
-    return emplace(key, value()).first->second;
+    return emplace(std::forward<string_type>(key)).first->second;
   }
 }
 
 template <typename value_type>
-const value_type &object<value_type>::operator[](const std::string &key) const {
-  return const_cast<object<value_type> &>(*this)[key];
+template <typename string_type>
+const value_type &object<value_type>::operator[](string_type &&key) const {
+  return const_cast<object<value_type> &>(*this)[std::forward<string_type>(key)];
 }
 
 template <typename value_type>
@@ -110,32 +119,19 @@ void object<value_type>::clear() {
 }
 
 template <typename value_type>
-typename object<value_type>::iterator object<value_type>::lower_bound(const std::string &key) {
-  return std::lower_bound(begin(), end(), key,
-      [](const entry_type &e, const string &k) { return std::strcmp(e.first.c_str(), k.c_str()) < 0; });
-}
-
-template <typename value_type>
-template <typename key_type, typename ...arg_types>
-std::pair<typename object<value_type>::iterator, bool> object<value_type>::emplace(key_type &&key, arg_types &&...args) {
-  iterator it = lower_bound(key);
-  if (it != end() && std::strcmp(it->first.c_str(), string(key).c_str()) == 0) {
+template <typename string_type, typename ...arg_types>
+std::pair<typename object<value_type>::iterator, bool> object<value_type>::emplace(string_type &&key, arg_types &&...args) {
+  iterator it = find(key);
+  if (it != end()) {
     return std::make_pair(it, false);
   }
 
-  // reserve may change memory address!
-  auto pos = (it - begin());
   reserve(size() + 1);  // may throw std::bad_alloc
-  it = begin() + pos;
 
-  if (it != end()) {
-    move_up(it);
-  }
-
+  it = reinterpret_cast<iterator>(&_.as_object.entries.ptr[size()]);
   *it = entry_type(
-      detail::construct<string>(std::forward<key_type>(key)),
+      detail::construct<string>(std::forward<string_type>(key)),
       detail::construct<value_type>(std::forward<arg_types>(args)...));
-
   _.as_object.size++;
 
   return std::make_pair(it, true);
