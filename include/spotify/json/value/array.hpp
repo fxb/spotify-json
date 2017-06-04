@@ -31,7 +31,7 @@
 namespace spotify {
 namespace json {
 
-template <typename value_type>
+template <typename value_type = value>
 struct array final : public value {
  public:
   array();

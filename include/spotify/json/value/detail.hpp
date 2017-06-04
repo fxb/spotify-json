@@ -90,7 +90,7 @@ union value_union {
   } as_string;
 
   struct {
-    ptr64<key_value> slots;
+    ptr64<key_value> entries;
     std::uint64_t size:48;
     uint8_t capacity_2exp;
     type type;
@@ -161,7 +161,7 @@ inline value_union::value_union(const value_union &other) : as_value(other.as_va
 inline value_union::~value_union() {
   switch (as_value.type) {
     case string: delete[] as_string.characters.ptr; break;
-    case object: delete[] as_object.slots.ptr; break;
+    case object: delete[] as_object.entries.ptr; break;
     case array:  delete[] as_array.elements.ptr; break;
     default: break;
   }
@@ -195,7 +195,7 @@ inline void value_union::move_string(value_union &&other) {
 }
 
 inline void value_union::move_object(value_union &&other) {
-  other.as_object.slots.ptr = nullptr;
+  other.as_object.entries.ptr = nullptr;
   other.as_object.size = 0;
   other.as_object.capacity_2exp = 0;
 }
@@ -215,11 +215,11 @@ inline void value_union::duplicate_string() {
 }
 
 inline void value_union::duplicate_object() {
-  auto old_slots = as_object.slots.ptr;
-  auto new_slots = new key_value[capacity(as_object.capacity_2exp)];
-  as_object.slots.ptr = nullptr;
-  std::copy(old_slots, &old_slots[as_object.size], new_slots);
-  as_object.slots.ptr = new_slots;
+  auto old_entries = as_object.entries.ptr;
+  auto new_entries = new key_value[capacity(as_object.capacity_2exp)];
+  as_object.entries.ptr = nullptr;
+  std::copy(old_entries, &old_entries[as_object.size], new_entries);
+  as_object.entries.ptr = new_entries;
 }
 
 inline void value_union::duplicate_array() {
