@@ -32,6 +32,9 @@ struct string : public value {
   string(const char *c_str);
   string(const char *c_str, std::size_t size);
 
+  template <typename iterator_type>
+  string(iterator_type begin, iterator_type end);
+
   std::size_t size() const;
   const char *data() const;
   const char *c_str() const;
@@ -61,6 +64,9 @@ inline string::string(const char *c_str, std::size_t size) : value(detail::value
     _.as_string.size = size;
   }
 }
+
+template <typename iterator_type>
+inline string::string(iterator_type begin, iterator_type end) : string(begin, end - begin) {}
 
 inline std::size_t string::size() const {
   return is_short_string() ?

@@ -24,6 +24,7 @@
 #include <vector>
 
 #include <spotify/json/decode_context.hpp>
+#include <spotify/json/decode_exception.hpp>
 #include <spotify/json/detail/macros.hpp>
 #include <spotify/json/detail/skip_chars.hpp>
 

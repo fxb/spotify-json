@@ -54,6 +54,9 @@ struct number final : public value {
   operator double() const;
 
   template <typename T> T as() const;
+
+  bool is_signed() const;
+  bool is_decimal() const;
 };
 
 inline number::number() : number(0) {}
@@ -161,6 +164,24 @@ inline T number::as() const {
     case detail::value_union::uint64: return static_cast<T>(_.as_uint64.number);
     case detail::value_union::number: return static_cast<T>(_.as_double.number);
     default: json_unreachable(); return 0;
+  }
+}
+
+inline bool number::is_signed() const {
+  switch (_.as_value.type) {
+    case detail::value_union::sint64: return true;
+    case detail::value_union::uint64: return false;
+    case detail::value_union::number: return true;
+    default: json_unreachable(); return false;
+  }
+}
+
+inline bool number::is_decimal() const {
+  switch (_.as_value.type) {
+    case detail::value_union::sint64: return false;
+    case detail::value_union::uint64: return false;
+    case detail::value_union::number: return true;
+    default: json_unreachable(); return false;
   }
 }
 
