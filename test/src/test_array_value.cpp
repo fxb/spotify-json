@@ -26,6 +26,7 @@
 #include <spotify/json/value/value_codec.hpp>
 
 #include <spotify/json/codec/object.hpp>
+#include <spotify/json/encode.hpp>
 #include <spotify/json/decode.hpp>
 
 BOOST_AUTO_TEST_SUITE(spotify)
@@ -90,18 +91,21 @@ BOOST_AUTO_TEST_CASE(json_value_xxx) {
   auto x = decode(codec, R"({
     "foo": 1000,
     "bar": -2000,
-    "baz": 3.1415962 
+    "baz": 3.1415962
   })");
   std::cout << x << std::endl;
 
   auto y = decode(codec, R"([1, 2, 3])");
   std::cout << y << std::endl;
+  //std::cout << "ENCODED" << std::endl;
+  //std::cout << encode(codec, y) << std::endl;
 
   auto z = decode(make_codec(), R"({
     "type": "event",
     "data": {
       "x": 5235,
-      "y": 817
+      "y": 817,
+      "z": null
     }
   })");
   std::cout << z.type << std::endl;
