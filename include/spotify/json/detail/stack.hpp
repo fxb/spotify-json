@@ -51,6 +51,22 @@ struct stack {
     }
   }
 
+  T &peek() {
+    if (json_unlikely(_vector)) {
+      return _vector->back();
+    } else {
+      return _array[_inline_size - 1];
+    }
+  }
+
+  std::size_t size() const {
+    if (json_unlikely(_vector)) {
+      return _vector->size();
+    } else {
+      return _inline_size;
+    }
+  }
+
  private:
   std::array<T, inline_capacity> _array;
   std::unique_ptr<std::vector<T>> _vector;
