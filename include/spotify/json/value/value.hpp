@@ -17,6 +17,7 @@
 #pragma once
 
 #include <utility>
+#include <tuple>
 #include <type_traits>
 
 #include <spotify/json/encoded_value.hpp>
@@ -40,8 +41,8 @@ struct value {
  public:
   value();
 
-  template <typename T>
-  value(T &&v);
+  template <typename ...Args>
+  value(Args &&...args);
 
   template <typename T>
   value &operator=(T &&v);
@@ -57,9 +58,9 @@ struct value {
 
 static_assert(sizeof(value) == sizeof(detail::value_union), "size of value should equal size of value_union");
 
-template <typename T>
-inline value::value(T &&v) {
-  *this = detail::construct<value>(std::forward<T>(v));
+template <typename ...Args>
+inline value::value(Args &&...args) {
+  *this = detail::construct<value>(std::forward<Args>(args)...);
 }
 
 template <typename T>
@@ -87,24 +88,33 @@ inline type value::type() const {
 
 namespace detail {
 
-template <class ...T>
-using decay_t = typename std::decay<T...>::type;
+template <class ...Args>
+using head_t = typename std::tuple_element<0, std::tuple<Args...>>::type;
+
+template <class T>
+using decay_t = typename std::decay<T>::type;
+
+template <class T>
+struct is_boolean : std::is_same<decay_t<T>, bool> {};
+
+template <class T>
+struct is_number : std::integral_constant<bool, std::is_arithmetic<T>::value && !is_boolean<T>::value> {};
 
 template <bool B, class T = void>
 using enable_if_t = typename std::enable_if<B, T>::type;
 
-template <typename T, typename ...Args>
-using enable_construct_t = enable_if_t<0 < sizeof...(Args) && std::is_constructible<T, Args...>::value && !std::is_same<T, decay_t<Args...>>::value>;
+template <typename T, bool B, typename ...Args>
+using enable_construct_t = enable_if_t<B && 0 < sizeof...(Args) && std::is_constructible<T, Args...>::value && !std::is_same<T, decay_t<head_t<Args...>>>::value>;
 
 template <>
 struct construct_impl<value> {
-  template <typename T, typename = enable_if_t<std::is_same<decay_t<T>, bool>::value>>
+  template <typename T, typename = enable_construct_t<boolean, is_boolean<T>::value, T>>
   static boolean construct(T &&v);
 
-  template <typename T, typename = enable_construct_t<number, T>>
+  template <typename T, typename = enable_construct_t<number, is_number<T>::value, T>>
   static number construct(T &&v);
 
-  template <typename ...Args, typename = enable_construct_t<string, Args...>>
+  template <typename ...Args, typename = enable_construct_t<string, true, Args...>>
   static string construct(Args &&...args);
 
   static value construct(const value &v) {
