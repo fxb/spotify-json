@@ -38,6 +38,7 @@ struct string : public value {
   std::size_t size() const;
   const char *data() const;
   const char *c_str() const;
+  std::string str() const;
 
   operator const char*() const;
   operator std::string() const;
@@ -84,12 +85,16 @@ inline const char *string::c_str() const {
   return data();
 }
 
+inline std::string string::str() const {
+  return std::string(data(), size());
+}
+
 inline string::operator const char*() const {
   return c_str();
 }
 
 inline string::operator std::string() const {
-  return std::string(data(), size());
+  return str();
 }
 
 inline bool string::is_short_string() const {
