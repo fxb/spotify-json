@@ -100,15 +100,15 @@ namespace detail {
 
 template <>
 struct construct_impl<string> {
-  template <typename ...arg_types>
-  static string construct(arg_types &&...args) {
-    return string(std::forward<arg_types>(args)...);
+  template <typename ...Args>
+  static string construct(Args &&...args) {
+    return string(std::forward<Args>(args)...);
   }
 };
 
-template <typename ...arg_types, typename>
-string construct_impl<value>::construct(arg_types &&...args) {
-  return construct_impl<string>::construct(std::forward<arg_types>(args)...);
+template <typename ...Args, typename>
+string construct_impl<value>::construct(Args &&...args) {
+  return construct_impl<string>::construct(std::forward<Args>(args)...);
 }
 
 }  // namespace detail

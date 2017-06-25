@@ -54,9 +54,9 @@ struct value {
 
 static_assert(sizeof(value) == sizeof(detail::value_union), "size of value should equal size of value_union");
 
-template <typename arg_type>
-inline value &value::operator=(arg_type &&arg) {
-  *this = detail::construct<value>(std::forward<arg_type>(arg));
+template <typename T>
+inline value &value::operator=(T &&v) {
+  *this = detail::construct<value>(std::forward<T>(v));
   return *this;
 }
 
@@ -79,22 +79,27 @@ inline type value::type() const {
 
 namespace detail {
 
-template <typename value_type, typename ...arg_types>
-using enable_construct_for = typename std::enable_if<std::is_constructible<value_type, arg_types...>::value && 0 < sizeof...(arg_types)>::type;
+template <class ...T>
+using decay_t = typename std::decay<T...>::type;
+
+template <bool B, class T = void>
+using enable_if_t = typename std::enable_if<B, T>::type;
+
+template <typename T, typename ...Args>
+using enable_construct_t = enable_if_t<0 < sizeof...(Args) && std::is_constructible<T, Args...>::value && !std::is_same<T, decay_t<Args...>>::value>;
 
 template <>
 struct construct_impl<value> {
   static boolean construct(bool b);
 
-  template <typename arg_type, typename = enable_construct_for<number, arg_type>>
-  static number construct(arg_type &&arg);
+  template <typename T, typename = enable_construct_t<number, T>>
+  static number construct(T &&v);
 
-  template <typename ...arg_types, typename = enable_construct_for<string, arg_types...>>
-  static string construct(arg_types &&...args);
+  template <typename ...Args, typename = enable_construct_t<string, Args...>>
+  static string construct(Args &&...args);
 
-  template <typename arg_type, typename = typename std::enable_if<std::is_base_of<value, typename std::remove_reference<arg_type>::type>::value>::type>
-  static value construct(arg_type &&v) {
-    return value(v);
+  static value construct(const value &v) {
+    return v;
   }
 
   static value construct() {

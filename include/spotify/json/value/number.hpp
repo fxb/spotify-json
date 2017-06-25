@@ -189,15 +189,15 @@ namespace detail {
 
 template <>
 struct construct_impl<number> {
-  template <typename arg_type>
-  static number construct(arg_type &&arg) {
-    return number(arg);
+  template <typename T>
+  static number construct(T &&v) {
+    return number(v);
   }
 };
 
-template <typename arg_type, typename>
-number construct_impl<value>::construct(arg_type &&arg) {
-  return construct_impl<number>::construct(arg);
+template <typename T, typename>
+number construct_impl<value>::construct(T &&v) {
+  return construct_impl<number>::construct(v);
 }
 
 }  // namespace detail
