@@ -83,6 +83,45 @@ codec::object_t<foo_t> make_codec() {
   return codec;
 }
 
+BOOST_AUTO_TEST_CASE(json_value_construct_from_boolean) {
+  value v{ true };
+  BOOST_REQUIRE_EQUAL(v.type(), type::boolean);
+  BOOST_CHECK_EQUAL(static_cast<bool>(value_cast<boolean>(v)), true);
+}
+
+BOOST_AUTO_TEST_CASE(json_value_construct_from_integer) {
+  value v{ 42 };
+  BOOST_REQUIRE_EQUAL(v.type(), type::number);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v)), 42);
+}
+
+BOOST_AUTO_TEST_CASE(json_value_construct_from_floating_point) {
+  value v_float{ 1.5f };
+  value v_double{ 1.5 };
+  BOOST_REQUIRE_EQUAL(v_float.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_double.type(), type::number);
+  BOOST_CHECK_EQUAL(static_cast<float>(value_cast<number>(v_float)), 1.5f);
+  BOOST_CHECK_EQUAL(static_cast<double>(value_cast<number>(v_double)), 1.5);
+}
+
+BOOST_AUTO_TEST_CASE(json_value_construct_from_string) {
+  value v{ std::string{ "foo" } };
+  BOOST_REQUIRE_EQUAL(v.type(), type::string);
+  BOOST_CHECK_EQUAL(value_cast<string>(v).str(), "foo");
+}
+
+BOOST_AUTO_TEST_CASE(json_value_construct_from_const_char) {
+  value v{ "foo" };
+  BOOST_REQUIRE_EQUAL(v.type(), type::string);
+  BOOST_CHECK_EQUAL(value_cast<string>(v).str(), "foo");
+}
+
+BOOST_AUTO_TEST_CASE(json_value_construct_from_const_char_and_size) {
+  value v{ "foobar", 3 };
+  BOOST_REQUIRE_EQUAL(v.type(), type::string);
+  BOOST_CHECK_EQUAL(value_cast<string>(v).str(), "foo");
+}
+
 BOOST_AUTO_TEST_CASE(json_value_xxx) {
   codec::value_t codec;
 
