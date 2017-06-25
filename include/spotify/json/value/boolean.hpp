@@ -48,8 +48,9 @@ struct construct_impl<boolean> {
   }
 };
 
-boolean construct_impl<value>::construct(bool b) {
-  return construct_impl<boolean>::construct(b);
+template <typename T, typename>
+boolean construct_impl<value>::construct(T &&v) {
+  return construct_impl<boolean>::construct(v);
 }
 
 }  // namespace detail

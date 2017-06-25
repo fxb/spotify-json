@@ -90,7 +90,8 @@ using enable_construct_t = enable_if_t<0 < sizeof...(Args) && std::is_constructi
 
 template <>
 struct construct_impl<value> {
-  static boolean construct(bool b);
+  template <typename T, typename = enable_if_t<std::is_same<decay_t<T>, bool>::value>>
+  static boolean construct(T &&v);
 
   template <typename T, typename = enable_construct_t<number, T>>
   static number construct(T &&v);
