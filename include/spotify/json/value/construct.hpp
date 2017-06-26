@@ -23,18 +23,13 @@ namespace spotify {
 namespace json {
 namespace detail {
 
-template <typename value_type>
+template <typename T>
 struct construct_impl {};
 
-template <typename value_type, typename ...arg_types>
-value_type construct(arg_types &&...args) {
-  using construct_impl = detail::construct_impl<typename std::remove_reference<value_type>::type>;
-  return construct_impl::construct(std::forward<arg_types>(args)...);
-}
-
-template <typename value_type>
-void destruct(value_type *ptr) {
-  ptr->~value_type();
+template <typename T, typename ...Args>
+T construct(Args &&...args) {
+  using construct_impl = detail::construct_impl<typename std::decay<T>::type>;
+  return construct_impl::construct(std::forward<Args>(args)...);
 }
 
 }  // namespace detail

@@ -32,41 +32,52 @@
 BOOST_AUTO_TEST_SUITE(spotify)
 BOOST_AUTO_TEST_SUITE(json)
 
+inline std::ostream &operator <<(std::ostream &stream, const type &t) {
+  switch (t) {
+    case type::string:  return stream << "string";
+    case type::object:  return stream << "object";
+    case type::array:   return stream << "array";
+    case type::number:  return stream << "number";
+    case type::boolean: return stream << "boolean";
+    case type::null:    return stream << "null";
+  }
+  return stream;
+}
+
 inline std::ostream &operator <<(std::ostream &stream, const value &v) {
+  stream << v.type() << ": ";
   switch (v.type()) {
     case type::string:
-      stream << "string: " <<  (const char *)value_cast<string>(v);
-      break;
+      return stream << value_cast<string>(v).str();
     case type::object: {
-      stream << "object: " << std::endl;
+      stream << "\n";
       auto obj = value_cast<object<value>>(v);
       for (auto e : obj) {
-        std::cout << "\t" << e.first << ", " << e.second << std::endl;
+        std::cout << "\t" << e.first << ", " << e.second << '\n';
       }
       break;
     }
     case type::array: {
-      stream << "array: " << std::endl;
+      stream << "\n";
       auto arr = value_cast<array<value>>(v);
       for (auto e : arr) {
-        std::cout << "\t" << e << std::endl;
+        stream << "\t" << e << '\n';
       }
       break;
     }
     case type::number: {
-      stream << "number: ";
       auto n = value_cast<number>(v);
       if (n.is_decimal()) {
-        std::cout << n.as<double>() << " (decimal)";
+        stream << n.as<double>() << " (decimal)";
       } else if (n.is_signed()) {
-        std::cout << n.as<signed long long>() << " (signed)";
+        stream << n.as<signed long long>() << " (signed)";
       } else {
-        std::cout << n.as<unsigned long long>() << " (unsigned)";
+        stream << n.as<unsigned long long>() << " (unsigned)";
       }
       break;
     }
-    case type::boolean: stream << "boolean: " << (bool)value_cast<boolean>(v); break;
-    case type::null:    stream << "null"; break;
+    case type::boolean: return stream << static_cast<bool>(value_cast<boolean>(v));
+    case type::null: break;
   }
   return stream;
 }
@@ -83,16 +94,47 @@ codec::object_t<foo_t> make_codec() {
   return codec;
 }
 
-BOOST_AUTO_TEST_CASE(json_value_construct_from_boolean) {
+BOOST_AUTO_TEST_CASE(json_value_construct_from_bool) {
   value v{ true };
   BOOST_REQUIRE_EQUAL(v.type(), type::boolean);
   BOOST_CHECK_EQUAL(static_cast<bool>(value_cast<boolean>(v)), true);
 }
 
-BOOST_AUTO_TEST_CASE(json_value_construct_from_integer) {
-  value v{ 42 };
-  BOOST_REQUIRE_EQUAL(v.type(), type::number);
-  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v)), 42);
+BOOST_AUTO_TEST_CASE(json_value_construct_from_arithmetic) {
+  value v_c{ 'A' };
+  value v_sc{ static_cast<signed char>(42) };
+  value v_uc{ static_cast<unsigned char>(42) };
+  value v_s{ static_cast<signed short>(42) };
+  value v_us{ static_cast<unsigned short>(42) };
+  value v_i{ 42 };
+  value v_l{ 42l };
+  value v_ll{ 42ll };
+  value v_ui{ 42u };
+  value v_ul{ 42ul };
+  value v_ull{ 42ull };
+  BOOST_REQUIRE_EQUAL(v_c.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_sc.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_uc.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_s.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_us.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_i.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_l.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_ll.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_ui.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_ul.type(), type::number);
+  BOOST_REQUIRE_EQUAL(v_ull.type(), type::number);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_c)), 65);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_sc)), 42);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_uc)), 42);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_s)), 42);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_us)), 42);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_s)), 42);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_i)), 42);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_l)), 42);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_ll)), 42);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_ui)), 42);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_ul)), 42);
+  BOOST_CHECK_EQUAL(static_cast<int>(value_cast<number>(v_ull)), 42);
 }
 
 BOOST_AUTO_TEST_CASE(json_value_construct_from_floating_point) {

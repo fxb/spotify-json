@@ -31,6 +31,12 @@ namespace detail {
 
 template <typename value_type> struct cast_impl;
 
+template <class T>
+using decay_t = typename std::decay<T>::type;
+
+template <bool B, class T = void>
+using enable_if_t = typename std::enable_if<B, T>::type;
+
 }  // namespace detail
 
 struct boolean;
@@ -41,10 +47,12 @@ struct value {
  public:
   value();
 
-  template <typename ...Args>
-  value(Args &&...args);
+  // Enable only for non-base types of 'value'.
+  template <typename T0, typename ...Ts, typename = detail::enable_if_t<!std::is_base_of<value, detail::decay_t<T0>>::value>>
+  explicit value(T0 arg, Ts &&...args);
 
-  template <typename T>
+  // Enable only for non-base types of 'value'.
+  template <typename T, typename = detail::enable_if_t<!std::is_base_of<value, detail::decay_t<T>>::value>>
   value &operator=(T &&v);
 
   type type() const;
@@ -58,12 +66,12 @@ struct value {
 
 static_assert(sizeof(value) == sizeof(detail::value_union), "size of value should equal size of value_union");
 
-template <typename ...Args>
-inline value::value(Args &&...args) {
-  *this = detail::construct<value>(std::forward<Args>(args)...);
+template <typename T0, typename ...Ts, typename>
+inline value::value(T0 arg, Ts &&...args) {
+  *this = detail::construct<value>(std::forward<T0>(arg), std::forward<Ts>(args)...);
 }
 
-template <typename T>
+template <typename T, typename>
 inline value &value::operator=(T &&v) {
   *this = detail::construct<value>(std::forward<T>(v));
   return *this;
@@ -88,37 +96,33 @@ inline type value::type() const {
 
 namespace detail {
 
-template <class ...Args>
-using head_t = typename std::tuple_element<0, std::tuple<Args...>>::type;
-
-template <class T>
-using decay_t = typename std::decay<T>::type;
-
 template <class T>
 struct is_boolean : std::is_same<decay_t<T>, bool> {};
 
 template <class T>
 struct is_number : std::integral_constant<bool, std::is_arithmetic<T>::value && !is_boolean<T>::value> {};
 
-template <bool B, class T = void>
-using enable_if_t = typename std::enable_if<B, T>::type;
-
-template <typename T, bool B, typename ...Args>
-using enable_construct_t = enable_if_t<B && 0 < sizeof...(Args) && std::is_constructible<T, Args...>::value && !std::is_same<T, decay_t<head_t<Args...>>>::value>;
+template <typename T, bool B, class T0, class ...Ts>
+using enable_construct_t = enable_if_t<B && std::is_constructible<T, T0, Ts...>::value && !std::is_same<T, decay_t<T0>>::value>;
 
 template <>
 struct construct_impl<value> {
+  // Enable only for bool type.
   template <typename T, typename = enable_construct_t<boolean, is_boolean<T>::value, T>>
   static boolean construct(T &&v);
 
+  // Enable only for arithmetic types (and not bool).
   template <typename T, typename = enable_construct_t<number, is_number<T>::value, T>>
   static number construct(T &&v);
 
-  template <typename ...Args, typename = enable_construct_t<string, true, Args...>>
-  static string construct(Args &&...args);
+  // Enable only for arguments 'string' is constructible with.
+  template <typename T0, typename ...Ts, typename = enable_construct_t<string, true, T0, Ts...>>
+  static string construct(T0 &&arg, Ts &&...args);
 
-  static value construct(const value &v) {
-    return v;
+  // Enable only for base types of 'value'.
+  template <typename T, typename = enable_if_t<std::is_base_of<value, decay_t<T>>::value>>
+  static value construct(T &&v) {
+    return std::forward<T>(v);
   }
 
   static value construct() {

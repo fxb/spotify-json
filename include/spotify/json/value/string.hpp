@@ -111,9 +111,9 @@ struct construct_impl<string> {
   }
 };
 
-template <typename ...Args, typename>
-string construct_impl<value>::construct(Args &&...args) {
-  return construct_impl<string>::construct(std::forward<Args>(args)...);
+template <typename T0, typename ...Ts, typename>
+string construct_impl<value>::construct(T0 &&arg0, Ts &&...args) {
+  return construct_impl<string>::construct(std::forward<T0>(arg0), std::forward<Ts>(args)...);
 }
 
 }  // namespace detail
