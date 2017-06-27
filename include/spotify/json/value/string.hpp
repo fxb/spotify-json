@@ -67,7 +67,19 @@ inline string::string(const char *c_str, std::size_t size) : value(detail::value
 }
 
 template <typename iterator_type>
-inline string::string(iterator_type begin, iterator_type end) : string(begin, end - begin) {}
+inline string::string(iterator_type begin, iterator_type end) : value(detail::value_union::string) {
+  const std::size_t size = std::distance(begin, end);
+  if (size < 16) {
+    std::copy(begin, end, _.as_short_string.characters);
+    _.as_short_string.characters[size] = 0;
+    _.as_short_string.type = static_cast<detail::value_union::type>(15 - size);
+  } else {
+    _.as_string.characters.ptr = new char[size + 1];
+    std::copy(begin, end, _.as_string.characters.ptr);
+    _.as_string.characters.ptr[size] = 0;
+    _.as_string.size = size;
+  }
+}
 
 inline std::size_t string::size() const {
   return is_short_string() ?
