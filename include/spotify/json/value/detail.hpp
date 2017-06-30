@@ -215,11 +215,18 @@ inline void value_union::move_array(value_union &&other) {
   other.as_array.capacity_2exp = 0;
 }
 
+template<class T>
+inline void value_copy_n(const T *in, std::size_t size, T *out) {
+  while (size--) {
+    *out++ = *in++;
+  }
+}
+
 inline void value_union::duplicate_string() {
   const auto old_characters = as_string.characters.ptr;
   const auto new_characters = new char[as_string.size + 1];
   as_string.characters.ptr = nullptr;
-  std::copy(old_characters, &old_characters[as_string.size + 1], new_characters);
+  ::memcpy(new_characters, old_characters, as_string.size + 1);
   as_string.characters.ptr = new_characters;
 }
 
@@ -227,7 +234,7 @@ inline void value_union::duplicate_object() {
   auto old_entries = as_object.entries.ptr;
   auto new_entries = new key_value[capacity(as_object.capacity_2exp)];
   as_object.entries.ptr = nullptr;
-  std::copy(old_entries, &old_entries[as_object.size], new_entries);
+  value_copy_n(old_entries, as_object.size, new_entries);
   as_object.entries.ptr = new_entries;
 }
 
@@ -235,7 +242,7 @@ inline void value_union::duplicate_array() {
   const auto old_elements = as_array.elements.ptr;
   const auto new_elements = new value_union[capacity(as_array.capacity_2exp)];
   as_array.elements.ptr = nullptr;
-  std::copy(old_elements, &old_elements[as_array.size], new_elements);
+  value_copy_n(old_elements, as_array.size, new_elements);
   as_array.elements.ptr = new_elements;
 }
 
