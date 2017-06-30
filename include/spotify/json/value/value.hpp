@@ -23,7 +23,7 @@
 #include <spotify/json/encoded_value.hpp>
 #include <spotify/json/type.hpp>
 #include <spotify/json/value/construct.hpp>
-#include <spotify/json/value/detail.hpp>
+#include <spotify/json/value/value_union.hpp>
 
 namespace spotify {
 namespace json {

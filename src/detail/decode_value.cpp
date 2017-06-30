@@ -35,7 +35,7 @@ json_force_inline bool is_digit(const char c) {
   return (c >= '0' && c <= '9');
 }
 
-json::number decode_number(decode_context &context) {
+number decode_number(decode_context &context) {
   const auto position = context.position;
 
   bool is_signed = false;
@@ -88,77 +88,77 @@ json::number decode_number(decode_context &context) {
 }
 
 value decode_value(decode_context &context) {
-  detail::stack<json::value, 64> stack;
+  stack<value, 64> stack;
   std::string key;
-  json::value val;
+  value val;
 
-  using array_type = json::array<json::value>;
-  using object_type = json::object<json::value>;
+  using array_type = array<value>;
+  using object_type = object<value>;
 
   do {
-    const char c = detail::peek(context);
+    const char c = peek(context);
     if (c == '[') {
-      detail::skip_1(context, '[');
-      detail::skip_any_whitespace(context);
+      skip_1(context, '[');
+      skip_any_whitespace(context);
 
       stack.push(array_type{});
 
       continue;
     } else if (c == '{') {
-      detail::skip_1(context, '{');
-      detail::skip_any_whitespace(context);
+      skip_1(context, '{');
+      skip_any_whitespace(context);
       key.assign(codec::string_t().decode(context));
-      detail::skip_any_whitespace(context);
-      detail::skip_1(context, ':');
-      detail::skip_any_whitespace(context);
+      skip_any_whitespace(context);
+      skip_1(context, ':');
+      skip_any_whitespace(context);
 
       stack.push(object_type{});
 
       continue;
     } else if (c == 't') {
-      detail::skip_true(context);
-      val = json::boolean{ true };
+      skip_true(context);
+      val = boolean{ true };
     } else if (c == 'f') {
-      detail::skip_false(context);
-      val = json::boolean{ false };
+      skip_false(context);
+      val = boolean{ false };
     } else if (c == 'n') {
-      detail::skip_null(context);
-      val = json::value{};
+      skip_null(context);
+      val = value{};
     } else if (c == '"') {
-      val = json::string(codec::string_t().decode(context));
-    } else if (c == '-' || detail::is_digit(c)) {
-      val = detail::decode_number(context);
+      val = string(codec::string_t().decode(context));
+    } else if (c == '-' || is_digit(c)) {
+      val = decode_number(context);
     } else {
-      detail::fail(context, std::string("Encountered unexpected character '") + c + "'");
+      fail(context, std::string("Encountered unexpected character '") + c + "'");
     }
 
     while (!stack.empty()) {
-      detail::skip_any_whitespace(context);
+      skip_any_whitespace(context);
 
       if (auto *arr = value_cast<array_type>(&stack.peek())) {
         arr->push_back(std::move(val));
 
-        if (json_likely(detail::peek(context) != ']')) {
-          detail::skip_1(context, ',');
-          detail::skip_any_whitespace(context);
+        if (json_likely(peek(context) != ']')) {
+          skip_1(context, ',');
+          skip_any_whitespace(context);
           break;
         } else {
-          detail::skip_1(context, ']');
+          skip_1(context, ']');
           val = stack.pop();
         }
       } else if (auto *obj = value_cast<object_type>(&stack.peek())) {
         obj->emplace(std::move(key), std::move(val));
 
-        if (json_likely(detail::peek(context) != '}')) {
-          detail::skip_1(context, ',');
-          detail::skip_any_whitespace(context);
+        if (json_likely(peek(context) != '}')) {
+          skip_1(context, ',');
+          skip_any_whitespace(context);
           key.assign(codec::string_t().decode(context));
-          detail::skip_any_whitespace(context);
-          detail::skip_1(context, ':');
-          detail::skip_any_whitespace(context);
+          skip_any_whitespace(context);
+          skip_1(context, ':');
+          skip_any_whitespace(context);
           break;
         } else {
-          detail::skip_1(context, '}');
+          skip_1(context, '}');
           val = stack.pop();
         }
       }

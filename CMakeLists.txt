@@ -103,13 +103,13 @@ set(json_detail_SSE42_SOURCES
 set(json_value_HEADERS
   include/spotify/json/value/array.hpp
   include/spotify/json/value/boolean.hpp
-  include/spotify/json/value/detail.hpp
   include/spotify/json/value/number.hpp
   include/spotify/json/value/object.hpp
   include/spotify/json/value/optional.hpp
   include/spotify/json/value/string.hpp
   include/spotify/json/value/value.hpp
   include/spotify/json/value/value_cast.hpp
+  include/spotify/json/value/value_union.hpp
   )
 
 set(json_all_HEADERS
