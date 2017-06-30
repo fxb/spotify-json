@@ -19,15 +19,14 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <spotify/json/codec/object.hpp>
+#include <spotify/json/codec/value.hpp>
+#include <spotify/json/encode.hpp>
+#include <spotify/json/decode.hpp>
 #include <spotify/json/value/array.hpp>
 #include <spotify/json/value/string.hpp>
 #include <spotify/json/value/number.hpp>
 #include <spotify/json/value/value_cast.hpp>
-#include <spotify/json/value/value_codec.hpp>
-
-#include <spotify/json/codec/object.hpp>
-#include <spotify/json/encode.hpp>
-#include <spotify/json/decode.hpp>
 
 BOOST_AUTO_TEST_SUITE(spotify)
 BOOST_AUTO_TEST_SUITE(json)

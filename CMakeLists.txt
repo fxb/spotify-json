@@ -65,6 +65,7 @@ set(json_codec_HEADERS
   include/spotify/json/codec/string.hpp
   include/spotify/json/codec/transform.hpp
   include/spotify/json/codec/tuple.hpp
+  include/spotify/json/codec/value.hpp
   )
 
 set(json_detail_HEADERS
@@ -72,6 +73,7 @@ set(json_detail_HEADERS
   include/spotify/json/detail/cpuid.hpp
   include/spotify/json/detail/decode_helpers.hpp
   include/spotify/json/detail/decode_string.hpp
+  include/spotify/json/detail/decode_value.hpp
   include/spotify/json/detail/encode_helpers.hpp
   include/spotify/json/detail/encode_integer.hpp
   include/spotify/json/detail/encode_string.hpp
@@ -84,6 +86,7 @@ set(json_detail_HEADERS
 
 set(json_detail_SOURCES
   src/detail/decode_string.cpp
+  src/detail/decode_value.cpp
   src/detail/encode_integer.cpp
   src/detail/escape.cpp
   src/detail/escape_common.hpp
@@ -107,7 +110,6 @@ set(json_value_HEADERS
   include/spotify/json/value/string.hpp
   include/spotify/json/value/value.hpp
   include/spotify/json/value/value_cast.hpp
-  include/spotify/json/value/value_codec.hpp
   )
 
 set(json_all_HEADERS
