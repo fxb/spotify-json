@@ -35,7 +35,7 @@ inline boolean::boolean(bool b) : value(b ?
     detail::value_union::value_true :
     detail::value_union::value_false) {}
 
-boolean::operator bool() const {
+inline boolean::operator bool() const {
   return _.as_value.type == detail::value_union::value_true;
 }
 
