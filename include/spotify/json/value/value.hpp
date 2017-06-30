@@ -47,11 +47,11 @@ struct value {
  public:
   value();
 
-  // Enable only for non-base types of 'value'.
+  // Enable only for non-derived types from 'value'.
   template <typename T0, typename ...Ts, typename = detail::enable_if_t<!std::is_base_of<value, detail::decay_t<T0>>::value>>
   explicit value(T0 arg, Ts &&...args);
 
-  // Enable only for non-base types of 'value'.
+  // Enable only for non-derived types from 'value'.
   template <typename T, typename = detail::enable_if_t<!std::is_base_of<value, detail::decay_t<T>>::value>>
   value &operator=(T &&v);
 
@@ -119,7 +119,7 @@ struct construct_impl<value> {
   template <typename T0, typename ...Ts, typename = enable_construct_t<string, true, T0, Ts...>>
   static string construct(T0 &&arg, Ts &&...args);
 
-  // Enable only for base types of 'value'.
+  // Enable only for derived types from 'value'.
   template <typename T, typename = enable_if_t<std::is_base_of<value, decay_t<T>>::value>>
   static value construct(T &&v) {
     return std::forward<T>(v);

@@ -102,7 +102,7 @@ template <typename value_type>
 void array<value_type>::reserve(std::size_t size) {
   const auto old_capacity = detail::value_union::capacity(_.as_array.capacity_2exp);
   if (json_unlikely(old_capacity < size)) {
-    const auto new_capacity_2exp = std::max(_.as_array.capacity_2exp + 1, 2);
+    const auto new_capacity_2exp = std::max<std::uint64_t>(_.as_array.capacity_2exp + 1, 2);
     const auto new_capacity = detail::value_union::capacity(new_capacity_2exp);
     const auto new_elements = new detail::value_union[new_capacity];  // may throw std::bad_alloc
     const auto old_elements = _.as_array.elements.ptr;

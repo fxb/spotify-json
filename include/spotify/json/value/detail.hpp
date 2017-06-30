@@ -31,7 +31,7 @@ union value_union {
   template <typename T> struct ptr64<T, 4> { T *ptr; uint32_t _; };
   template <typename T> struct ptr64<T, 8> { T *ptr; };
 
-  enum type : char {
+  enum type : std::uint8_t {
     short_string_15 = 0,
     short_string_14 = 1,
     short_string_13 = 2,
@@ -85,22 +85,22 @@ union value_union {
 
   struct {
     ptr64<char> characters;
-    std::uint64_t size:56;
-    type type;
+    std::uint64_t size : 56;
+    std::uint64_t type : 8;
   } as_string;
 
   struct {
     ptr64<key_value> entries;
-    std::uint64_t size:48;
-    uint8_t capacity_2exp;
-    type type;
+    std::uint64_t size : 48;
+    std::uint64_t capacity_2exp : 8;
+    std::uint64_t type : 8;
   } as_object;
 
   struct {
     ptr64<value_union> elements;
-    std::uint64_t size:48;
-    uint8_t capacity_2exp;
-    type type;
+    std::uint64_t size : 48;
+    std::uint64_t capacity_2exp : 8;
+    std::uint64_t type : 8;
   } as_array;
 
   struct {
@@ -121,7 +121,7 @@ union value_union {
     type type;
   } as_double;
 
-  static std::size_t capacity(uint8_t capacity_2exp) {
+  static std::uint64_t capacity(std::uint64_t capacity_2exp) {
     return (1 << capacity_2exp) - 1;
   }
 
@@ -134,6 +134,15 @@ union value_union {
   void duplicate_array();
 };
 
+static_assert(sizeof(value_union::ptr64<char>) == 8, "value_union::ptr64<char> should be exactly 8 bytes");
+static_assert(sizeof(value_union::as_value) == 16, "value_union::as_value should be exactly 16 bytes");
+static_assert(sizeof(value_union::as_short_string) == 16, "value_union::as_short_string should be exactly 16 bytes");
+static_assert(sizeof(value_union::as_string) == 16, "value_union::as_string should be exactly 16 bytes");
+static_assert(sizeof(value_union::as_object) == 16, "value_union::as_object should be exactly 16 bytes");
+static_assert(sizeof(value_union::as_array) == 16, "value_union::as_array should be exactly 16 bytes");
+static_assert(sizeof(value_union::as_sint64) == 16, "value_union::as_sint64 should be exactly 16 bytes");
+static_assert(sizeof(value_union::as_uint64) == 16, "value_union::as_uint64 should be exactly 16 bytes");
+static_assert(sizeof(value_union::as_double) == 16, "value_union::as_double should be exactly 16 bytes");
 static_assert(sizeof(value_union) == 16, "value_union should be exactly 16 bytes");
 
 inline value_union::value_union() : as_value(invalid) {}
