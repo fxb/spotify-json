@@ -67,6 +67,10 @@ struct stack {
     }
   }
 
+  bool empty() const {
+    return size() == 0;
+  }
+
  private:
   std::array<T, inline_capacity> _array;
   std::unique_ptr<std::vector<T>> _vector;

@@ -39,7 +39,7 @@ template <>
 struct cast_impl<string> {
   using target_type = string;
 
-  static target_type *cast(value *source) {
+  static target_type *cast(value *source) noexcept {
     const auto is_string = (source->_.as_value.type <= value_union::string);
     return is_string ? static_cast<target_type *>(source) : nullptr;
   }
@@ -67,7 +67,7 @@ template <typename value_type>
 struct cast_impl<object<value_type>> {
   using target_type = object<value_type>;
 
-  static target_type *cast(value *source) {
+  static target_type *cast(value *source) noexcept {
     const auto is_object = (source->_.as_value.type == value_union::object);
     return is_object ? static_cast<target_type *>(source) : nullptr;
   }
@@ -81,7 +81,7 @@ template <>
 struct cast_impl<number> {
   using target_type = number;
 
-  static target_type *cast(value *source) {
+  static target_type *cast(value *source) noexcept {
     switch (source->_.as_value.type) {
       case value_union::sint64: return static_cast<number *>(source);
       case value_union::uint64: return static_cast<number *>(source);
@@ -99,7 +99,7 @@ template <>
 struct cast_impl<boolean> {
   using target_type = boolean;
 
-  static target_type *cast(value *source) {
+  static target_type *cast(value *source) noexcept {
     switch (source->_.as_value.type) {
       case value_union::value_false: return static_cast<boolean *>(source);
       case value_union::value_true:  return static_cast<boolean *>(source);
@@ -148,13 +148,13 @@ const target_type &value_cast(const value &source) {
  */
 
 template <typename target_type>
-target_type *value_cast(value *source) {
+target_type *value_cast(value *source) noexcept {
   using cast_impl = detail::cast_impl<typename std::remove_reference<target_type>::type>;
   return cast_impl::cast(source);
 }
 
 template <typename target_type>
-const target_type *value_cast(const value *source) {
+const target_type *value_cast(const value *source) noexcept {
   return value_cast<target_type *>(const_cast<value *>(source));
 }
 

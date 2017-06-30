@@ -107,6 +107,7 @@ set(json_value_HEADERS
   include/spotify/json/value/string.hpp
   include/spotify/json/value/value.hpp
   include/spotify/json/value/value_cast.hpp
+  include/spotify/json/value/value_codec.hpp
   )
 
 set(json_all_HEADERS

@@ -104,7 +104,7 @@ json::number decode_number(decode_context &context) {
 
 namespace codec {
 
-struct state {
+/*struct state {
   enum stype {
     none,
     array,
@@ -130,49 +130,95 @@ struct state {
     begin = (void *)(++it_begin);
     return true;
   }
-};
+};*/
 
 class value_t final {
  public:
-  using object_type = value;
+  using object_type = json::value;
 
-  json_never_inline value decode(decode_context &context) const {
-    detail::require_bytes<1>(context);
-    const char c = detail::peek(context);
-    if (c == '[') {
-      json::array<value> arr;
-      detail::decode_comma_separated(context, '[', ']', [&]{
-        arr.push_back(decode(context));
-      });
-      return arr;
-    } else if (c == '{') {
-      json::object<value> obj;
-      detail::decode_object<codec::string_t>(context, [&](std::string &&key) {
-        obj.emplace(std::forward<std::string>(key), decode(context));
-      });
-      return obj;
-    } else if (c == 't') {
-      detail::skip_true(context);
-      return json::boolean(true);
-    } else if (c == 'f') {
-      detail::skip_false(context);
-      return json::boolean(false);
-    } else if (c == 'n') {
-      detail::skip_null(context);
-      return json::value();
-    } else if (c == '"') {
-      return json::string(codec::string_t().decode(context));
-    } else if (c == '-' || detail::is_digit(c)) {
-      return detail::decode_number(context);
-    } else {
-      detail::fail(context, std::string("Encountered unexpected character '") + c + "'");
-    }
+  json_never_inline json::value decode(decode_context &context) const {
+    detail::stack<json::value, 64> stack;
+    std::string key;
+    json::value val;
 
-    return value();
+    using array = json::array<json::value>;
+    using object = json::object<json::value>;
+
+    do {
+      const char c = detail::peek(context);
+      if (c == '[') {
+        detail::skip_1(context, '[');
+        detail::skip_any_whitespace(context);
+
+        stack.push(array{});
+
+        continue;
+      } else if (c == '{') {
+        detail::skip_1(context, '{');
+        detail::skip_any_whitespace(context);
+        key.assign(codec::string_t().decode(context));
+        detail::skip_any_whitespace(context);
+        detail::skip_1(context, ':');
+        detail::skip_any_whitespace(context);
+
+        stack.push(object{});
+
+        continue;
+      } else if (c == 't') {
+        detail::skip_true(context);
+        val = json::boolean{ true };
+      } else if (c == 'f') {
+        detail::skip_false(context);
+        val = json::boolean{ false };
+      } else if (c == 'n') {
+        detail::skip_null(context);
+        val = json::value{};
+      } else if (c == '"') {
+        val = json::string(codec::string_t().decode(context));
+      } else if (c == '-' || detail::is_digit(c)) {
+        val = detail::decode_number(context);
+      } else {
+        detail::fail(context, std::string("Encountered unexpected character '") + c + "'");
+      }
+
+      while (!stack.empty()) {
+        detail::skip_any_whitespace(context);
+
+        if (auto arr = value_cast<array>(&stack.peek())) {
+          arr->push_back(std::move(val));
+
+          if (json_likely(detail::peek(context) != ']')) {
+            detail::skip_1(context, ',');
+            detail::skip_any_whitespace(context);
+            break;
+          } else {
+            detail::skip_1(context, ']');
+            val = stack.pop();
+          }
+        } else if (auto arr = value_cast<object>(&stack.peek())) {
+          arr->emplace(std::move(key), std::move(val));
+
+          if (json_likely(detail::peek(context) != '}')) {
+            detail::skip_1(context, ',');
+            detail::skip_any_whitespace(context);
+            key.assign(codec::string_t().decode(context));
+            detail::skip_any_whitespace(context);
+            detail::skip_1(context, ':');
+            detail::skip_any_whitespace(context);
+            break;
+          } else {
+            detail::skip_1(context, '}');
+            val = stack.pop();
+          }
+        }
+      }
+    } while (!stack.empty());
+
+    return val;
   }
 
   json_never_inline void encode(encode_context &context, const json::value value) const {
-    detail::stack<state, 64> stack;
+    /*detail::stack<state, 64> stack;
     auto current = value;
 
     stack.push({state::stype::none, nullptr, nullptr});
@@ -236,7 +282,7 @@ class value_t final {
           break;
         }
       }
-    }
+    }*/
   }
 };
 
