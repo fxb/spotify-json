@@ -46,6 +46,9 @@ struct object final : public value {
   bool empty() const;
   std::size_t size() const;
 
+  entry_type &operator[](std::size_t index);
+  const entry_type &operator[](std::size_t index) const;
+
   template <typename string_type>
   value_type &operator[](string_type &&key);
 
@@ -94,6 +97,16 @@ bool object<value_type>::empty() const {
 template <typename value_type>
 std::size_t object<value_type>::size() const {
   return _.as_object.size;
+}
+
+template <typename value_type>
+typename object<value_type>::entry_type &object<value_type>::operator[](std::size_t index) {
+  return reinterpret_cast<entry_type &>(_.as_object.entries.ptr[index]);
+}
+
+template <typename value_type>
+const typename object<value_type>::entry_type &object<value_type>::operator[](std::size_t index) const {
+  return const_cast<object<value_type> &>(*this)[index];
 }
 
 template <typename value_type>
