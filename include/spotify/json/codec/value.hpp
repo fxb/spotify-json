@@ -19,6 +19,7 @@
 #include <spotify/json/decode_context.hpp>
 #include <spotify/json/default_codec.hpp>
 #include <spotify/json/detail/decode_value.hpp>
+#include <spotify/json/detail/encode_value.hpp>
 #include <spotify/json/value/value.hpp>
 
 namespace spotify {
@@ -34,7 +35,7 @@ class value_t final {
   }
 
   json_never_inline void encode(encode_context &context, const object_type value) const {
-    // detail::encode_value(context, value)
+    detail::encode_value(context, value);
   }
 };
 
@@ -83,70 +84,3 @@ struct default_codec_t<value> {
     return true;
   }
 };*/
-
-
-    /*detail::stack<state, 64> stack;
-    auto current = value;
-
-    stack.push({state::stype::none, nullptr, nullptr});
-
-    while(stack.size() > 0) {
-      state s = stack.peek();
-
-      if (s.type == state::stype::array) {
-        current = *s.current<json::array>();
-        if (!s.next<json::array>()) {
-          std::cout << "end" << std::endl;
-          stack.pop();
-        }
-      } else if (s.type == state::stype::object) {
-        auto e = *s.current<json::object>();
-        detail::encode_string(context, e.first);
-        current = e.second;
-        if (!s.next<json::object>()) {
-          stack.pop();
-        }
-      } else {
-        std::cout << "val" << std::endl;
-        stack.pop();
-      }
-
-      switch (current.type()) {
-        case type::array: {
-          const json::array<json::value> &v = value_cast<json::array<json::value> &>(current);
-          context.append('[');
-          stack.push({state::stype::array, (void *)v.begin(), (void *)v.end()});
-          break;
-        }
-        case type::object: {
-          const json::object<json::value> &v = value_cast<json::object<json::value> &>(current);
-          stack.push({state::stype::object, (void *)v.begin(), (void *)v.end()});
-          break;
-        }
-        case type::string: {
-          const json::string &v = value_cast<json::string &>(current);
-          detail::encode_string(context, v);
-          break;
-        }
-        case type::number: {
-          const json::number &v = value_cast<json::number &>(current);
-          if (v.is_decimal()) {
-            codec::number_t<double>().encode(context, v.as<double>());
-          } else if (v.is_signed()) {
-            codec::number_t<signed long long>().encode(context, v.as<signed long long>());
-          } else {
-            codec::number_t<unsigned long long>().encode(context, v.as<unsigned long long>());
-          }
-          break;
-        }
-        case type::boolean: {
-          const json::boolean &v = value_cast<json::boolean &>(current);
-          context.append(v ? "true" : "false", v ? 4 : 5);
-          break;
-        }
-        case type::null: {
-          context.append("null", 4);
-          break;
-        }
-      }
-    }*/
