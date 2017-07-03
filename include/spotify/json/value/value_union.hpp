@@ -85,7 +85,8 @@ union value_union {
 
   struct {
     ptr64<char> characters;
-    std::uint64_t size : 56;
+    std::uint64_t size : 48;
+    std::uint64_t capacity_2exp : 8;
     std::uint64_t type : 8;
   } as_string;
 
@@ -123,6 +124,10 @@ union value_union {
 
   static std::uint64_t capacity(std::uint64_t capacity_2exp) {
     return (1 << capacity_2exp) - 1;
+  }
+
+  static std::uint64_t capacity_2exp(std::uint64_t capacity) {
+    return static_cast<std::uint64_t>(std::log2(capacity) + 1);
   }
 
  private:
@@ -169,7 +174,7 @@ inline value_union::value_union(const value_union &other) : as_value(other.as_va
 
 inline value_union::~value_union() {
   switch (as_value.type) {
-    case string: delete[] as_string.characters.ptr; break;
+    case string: std::free(as_string.characters.ptr); break;
     case object: delete[] as_object.entries.ptr; break;
     case array:  delete[] as_array.elements.ptr; break;
     default: break;
@@ -224,9 +229,12 @@ inline void value_copy_n(const T *in, std::size_t size, T *out) {
 
 inline void value_union::duplicate_string() {
   const auto old_characters = as_string.characters.ptr;
-  const auto new_characters = new char[as_string.size + 1];
+  const auto new_characters = static_cast<char *>(std::malloc(capacity(as_string.capacity_2exp)));
+  if (json_unlikely(!new_characters)) {
+    throw std::bad_alloc();
+  }
   as_string.characters.ptr = nullptr;
-  ::memcpy(new_characters, old_characters, as_string.size + 1);
+  std::memcpy(new_characters, old_characters, as_string.size + 1);
   as_string.characters.ptr = new_characters;
 }
 
