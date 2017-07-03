@@ -17,8 +17,8 @@
 #include <spotify/json/detail/decode_value.hpp>
 
 #include <spotify/json/codec/number.hpp>
-#include <spotify/json/codec/string.hpp>
 #include <spotify/json/detail/decode_helpers.hpp>
+#include <spotify/json/detail/decode_string.hpp>
 #include <spotify/json/detail/stack.hpp>
 #include <spotify/json/value/array.hpp>
 #include <spotify/json/value/boolean.hpp>
@@ -87,9 +87,18 @@ number decode_number(decode_context &context) {
   }
 }
 
+json_force_inline string decode_object_key(decode_context &context) {
+  skip_any_whitespace(context);
+  string key = decode_string<string>(context);
+  skip_any_whitespace(context);
+  skip_1(context, ':');
+  skip_any_whitespace(context);
+  return key;
+}
+
 value decode_value(decode_context &context) {
   stack<value, 64> stack;
-  std::string key;
+  string key;
   value val;
 
   using array_type = array<value>;
@@ -100,20 +109,12 @@ value decode_value(decode_context &context) {
     if (c == '[') {
       skip_1(context, '[');
       skip_any_whitespace(context);
-
       stack.push(array_type{});
-
       continue;
     } else if (c == '{') {
       skip_1(context, '{');
-      skip_any_whitespace(context);
-      key.assign(codec::string_t().decode(context));
-      skip_any_whitespace(context);
-      skip_1(context, ':');
-      skip_any_whitespace(context);
-
+      key = decode_object_key(context);
       stack.push(object_type{});
-
       continue;
     } else if (c == 't') {
       skip_true(context);
@@ -125,7 +126,7 @@ value decode_value(decode_context &context) {
       skip_null(context);
       val = value{};
     } else if (c == '"') {
-      val = string(codec::string_t().decode(context));
+      val = decode_string<string>(context);
     } else if (c == '-' || is_digit(c)) {
       val = decode_number(context);
     } else {
@@ -151,11 +152,7 @@ value decode_value(decode_context &context) {
 
         if (json_likely(peek(context) != '}')) {
           skip_1(context, ',');
-          skip_any_whitespace(context);
-          key.assign(codec::string_t().decode(context));
-          skip_any_whitespace(context);
-          skip_1(context, ':');
-          skip_any_whitespace(context);
+          key = decode_object_key(context);
           break;
         } else {
           skip_1(context, '}');
