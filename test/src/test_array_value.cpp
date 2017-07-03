@@ -163,25 +163,25 @@ BOOST_AUTO_TEST_CASE(json_value_construct_from_const_char_and_size) {
   BOOST_CHECK_EQUAL(value_cast<string>(v).str(), "foo");
 }
 
-BOOST_AUTO_TEST_CASE(json_value_xxx) {
-  number n = 1;
-  string s = "foo";
-
-  codec::value_t codec;
-
-  auto x = decode(codec, R"({
+BOOST_AUTO_TEST_CASE(json_value_codec_can_decode_and_encode) {
+  const auto data = R"({
     "numbers": [1, 2, 3, [4, 5, 6]],
     "strings": {
       "foo": "bar",
       "bar": "baz"
     },
     "booleans": [true, false]
-  })");
-  std::cout << x << std::endl;
+  })";
 
-  foo_t foo;
+  const auto codec = codec::value();
+  const auto value = decode(codec, data);
+  encode(codec, value);
+}
 
-  /*auto x = decode(codec, R"({
+BOOST_AUTO_TEST_CASE(json_value_xxx) {
+  /*foo_t foo;
+
+  auto x = decode(codec, R"({
     "foo": 1000,
     "bar": -2000,
     "baz": 3.1415962
