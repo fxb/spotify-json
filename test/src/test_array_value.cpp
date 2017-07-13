@@ -14,7 +14,10 @@
  * the License.
  */
 
+#include <chrono>
+#include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include <boost/test/unit_test.hpp>
@@ -92,7 +95,7 @@ codec::object_t<foo_t> make_codec() {
   codec.optional("data", &foo_t::data);
   return codec;
 }
-
+/*
 BOOST_AUTO_TEST_CASE(json_value_construct_from_bool) {
   value v{ true };
   BOOST_REQUIRE_EQUAL(v.type(), type::boolean);
@@ -162,10 +165,10 @@ BOOST_AUTO_TEST_CASE(json_value_construct_from_const_char_and_size) {
   BOOST_REQUIRE_EQUAL(v.type(), type::string);
   BOOST_CHECK_EQUAL(value_cast<string>(v).str(), "foo");
 }
-
+*/
 BOOST_AUTO_TEST_CASE(json_value_codec_can_decode_and_encode) {
   const auto data = R"({
-    "numbers": [1, 2, 3, [4, 5, 6]],
+    "numbers": [[], 1, 2, 3, [4, 5, 6]],
     "strings": {
       "foo": "bar",
       "bar": "baz"
@@ -175,10 +178,33 @@ BOOST_AUTO_TEST_CASE(json_value_codec_can_decode_and_encode) {
 
   const auto codec = codec::value();
   const auto value = decode(codec, data);
-  encode(codec, value);
+  std::cout << encode(codec, value) << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(json_value_xxx) {
+  //string s1 = "fooooooooooooooooooooooooosafasfasfasfasfoooooooooooooooooooooo";
+  //value s2 = s1;
+
+  std::ifstream stream("data/twitter-orig.json");
+  std::string data((std::istreambuf_iterator<char>(stream)),
+                   std::istreambuf_iterator<char>());
+
+  using clock_t = std::chrono::high_resolution_clock;
+
+  const auto codec = codec::value();
+  auto then = clock_t::now();
+  const auto value = decode(codec, data);
+  std::cout << "decode: " << std::chrono::duration_cast<std::chrono::milliseconds>(clock_t::now() - then).count() << "ms" << std::endl;
+
+  then = clock_t::now();
+  encode(codec, value);
+  std::cout << "encode: " << std::chrono::duration_cast<std::chrono::milliseconds>(clock_t::now() - then).count() << "ms" << std::endl;
+
+  std::ofstream out("data/twitter.out.json", std::ios::binary);
+  //out << str;
+  out.close();
+  std::cout << "Done!" << std::endl;
+
   /*foo_t foo;
 
   auto x = decode(codec, R"({
