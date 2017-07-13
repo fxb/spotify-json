@@ -64,7 +64,7 @@ void encode_simple_value(encode_context &context, const value &v) {
 }
 
 struct state {
-  value value;
+  const value *value;
   std::size_t offset;
 };
 
@@ -74,23 +74,23 @@ void encode_value(encode_context &context, const value &v) {
   using array_type = array<value>;
   using object_type = object<value>;
 
-  stack.push({v, 0});
+  stack.push({&v, 0});
 
   while (!stack.empty()) {
     auto &state = stack.peek();
-    if (const auto *arr = value_cast<array_type>(&state.value)) {
+    if (const auto *arr = value_cast<array_type>(state.value)) {
       const auto size = arr->size();
       if (json_unlikely(size == 0)) {
         context.append("[]", 2);
         stack.pop();
       } else if (state.offset < size) {
         context.append(state.offset == 0 ? '[' : ',');
-        stack.push({(*arr)[state.offset++], 0});
+        stack.push({&(*arr)[state.offset++], 0});
       } else {
         context.append(']');
         stack.pop();
       }
-    } else  if (const auto *obj = value_cast<object_type>(&state.value)) {
+    } else if (const auto *obj = value_cast<object_type>(state.value)) {
       const auto size = obj->size();
       if (json_unlikely(size == 0)) {
         context.append("{}", 2);
@@ -100,29 +100,28 @@ void encode_value(encode_context &context, const value &v) {
         const auto &entry = (*obj)[state.offset++];
         encode_string(context, entry.first);
         context.append(':');
-        stack.push({entry.second, 0});
+        stack.push({&entry.second, 0});
       } else {
         context.append('}');
         stack.pop();
       }
     } else {
-      encode_simple_value(context, stack.pop().value);
+      encode_simple_value(context, *stack.pop().value);
     }
   }
 }
 
-/*
-void encode_value(encode_context &context, const value &v) {
+void encode_value_pretty(encode_context &context, const value &v) {
   stack<state, 64> stack;
 
   using array_type = array<value>;
   using object_type = object<value>;
 
-  stack.push({v, 0});
+  stack.push({&v, 0});
 
   while (!stack.empty()) {
     auto &state = stack.peek();
-    if (const auto *arr = value_cast<array_type>(&state.value)) {
+    if (const auto *arr = value_cast<array_type>(state.value)) {
       const auto size = arr->size();
       if (json_unlikely(size == 0)) {
         context.append("[]", 2);
@@ -132,7 +131,7 @@ void encode_value(encode_context &context, const value &v) {
         for (auto indent = 0; indent < stack.size(); ++indent) {
           context.append("  ", 2);
         }
-        stack.push({(*arr)[state.offset++], 0});
+        stack.push({&(*arr)[state.offset++], 0});
       }
       else {
         stack.pop();
@@ -142,7 +141,7 @@ void encode_value(encode_context &context, const value &v) {
         }
         context.append(']');
       }
-    } else  if (const auto *obj = value_cast<object_type>(&state.value)) {
+    } else  if (const auto *obj = value_cast<object_type>(state.value)) {
       const auto size = obj->size();
       if (json_unlikely(size == 0)) {
         context.append("{}", 2);
@@ -155,7 +154,7 @@ void encode_value(encode_context &context, const value &v) {
         const auto &entry = (*obj)[state.offset++];
         encode_string(context, entry.first);
         context.append(": ", 2);
-        stack.push({entry.second, 0});
+        stack.push({&entry.second, 0});
       }
       else {
         stack.pop();
@@ -167,11 +166,11 @@ void encode_value(encode_context &context, const value &v) {
       }
     }
     else {
-      encode_simple_value(context, stack.pop().value);
+      encode_simple_value(context, *stack.pop().value);
     }
   }
 }
-*/
+
 }  // namespace detail
 }  // namespace json
 }  // namespace spotify

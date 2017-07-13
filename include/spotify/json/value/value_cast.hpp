@@ -155,7 +155,7 @@ target_type *value_cast(value *source) noexcept {
 
 template <typename target_type>
 const target_type *value_cast(const value *source) noexcept {
-  return value_cast<target_type *>(const_cast<value *>(source));
+  return value_cast<target_type>(const_cast<value *>(source));
 }
 
 }  // namespace json

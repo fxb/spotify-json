@@ -42,7 +42,7 @@ struct stack {
 
   T pop() {
     if (json_unlikely(_vector)) {
-      auto top = _vector->back();
+      auto top = std::move(_vector->back());
       _vector->pop_back();
       return top;
     } else {

@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE(json_value_xxx) {
   //string s1 = "fooooooooooooooooooooooooosafasfasfasfasfoooooooooooooooooooooo";
   //value s2 = s1;
 
-  std::ifstream stream("data/twitter-orig.json");
+  std::ifstream stream("data/twitter.json");
   std::string data((std::istreambuf_iterator<char>(stream)),
                    std::istreambuf_iterator<char>());
 
@@ -197,11 +197,11 @@ BOOST_AUTO_TEST_CASE(json_value_xxx) {
   std::cout << "decode: " << std::chrono::duration_cast<std::chrono::milliseconds>(clock_t::now() - then).count() << "ms" << std::endl;
 
   then = clock_t::now();
-  encode(codec, value);
+  const auto str = encode(codec, value);
   std::cout << "encode: " << std::chrono::duration_cast<std::chrono::milliseconds>(clock_t::now() - then).count() << "ms" << std::endl;
 
   std::ofstream out("data/twitter.out.json", std::ios::binary);
-  //out << str;
+  out << str;
   out.close();
   std::cout << "Done!" << std::endl;
 

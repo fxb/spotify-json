@@ -34,7 +34,7 @@ class value_t final {
     return detail::decode_value(context);
   }
 
-  json_never_inline void encode(encode_context &context, const object_type value) const {
+  json_never_inline void encode(encode_context &context, const object_type &value) const {
     detail::encode_value(context, value);
   }
 };
