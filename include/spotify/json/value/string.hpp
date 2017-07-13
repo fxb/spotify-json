@@ -72,7 +72,9 @@ inline string::string(const char *c_str, std::size_t size) : value(detail::value
     _.as_short_string.characters[size] = 0;
     _.as_short_string.type = static_cast<detail::value_union::type>(15 - size);
   } else {
-    auto ptr = static_cast<char *>(std::malloc(size + 1));
+    const auto capacity_2exp = detail::value_union::capacity_2exp(size + 1);
+    const auto capacity = detail::value_union::capacity(capacity_2exp);
+    auto ptr = static_cast<char *>(std::malloc(capacity));
     if (json_unlikely(!ptr)) {
       throw std::bad_alloc();
     }
@@ -80,6 +82,8 @@ inline string::string(const char *c_str, std::size_t size) : value(detail::value
     std::memcpy(_.as_string.characters.ptr, c_str, size);
     _.as_string.characters.ptr[size] = 0;
     _.as_string.size = size;
+    _.as_string.capacity_2exp = capacity_2exp;
+    _.as_string.type = detail::value_union::type::string;
   }
 }
 
@@ -91,7 +95,9 @@ inline string::string(It begin, It end) : value(detail::value_union::string) {
     _.as_short_string.characters[size] = 0;
     _.as_short_string.type = static_cast<detail::value_union::type>(15 - size);
   } else {
-    auto ptr = static_cast<char *>(std::malloc(size + 1));
+    const auto capacity_2exp = detail::value_union::capacity_2exp(size + 1);
+    const auto capacity = detail::value_union::capacity(capacity_2exp);
+    auto ptr = static_cast<char *>(std::malloc(capacity));
     if (json_unlikely(!ptr)) {
       throw std::bad_alloc();
     }
@@ -99,6 +105,8 @@ inline string::string(It begin, It end) : value(detail::value_union::string) {
     std::copy(begin, end, _.as_string.characters.ptr);
     _.as_string.characters.ptr[size] = 0;
     _.as_string.size = size;
+    _.as_string.capacity_2exp = capacity_2exp;
+    _.as_string.type = detail::value_union::type::string;
   }
 }
 

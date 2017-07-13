@@ -174,9 +174,9 @@ inline value_union::value_union(const value_union &other) : as_value(other.as_va
 
 inline value_union::~value_union() {
   switch (as_value.type) {
-    case string: std::free(as_string.characters.ptr); break;
-    case object: delete[] as_object.entries.ptr; break;
-    case array:  delete[] as_array.elements.ptr; break;
+    case string: std::free(as_string.characters.ptr); as_string.characters.ptr = nullptr; break;
+    case object: delete[] as_object.entries.ptr;      as_object.entries.ptr    = nullptr; break;
+    case array:  delete[] as_array.elements.ptr;      as_array.elements.ptr    = nullptr; break;
     default: break;
   }
 }
