@@ -68,8 +68,9 @@ void skip_any_whitespace_sse42(decode_context &context) {
     }
   }
 
-  alignas(16) static const char CHARS[16] = " \t\n\r";
-  const auto chars = _mm_load_si128(reinterpret_cast<const __m128i *>(&CHARS[0]));
+  //alignas(16) static const char CHARS[16] = " \t\n\r";
+  //const auto chars = _mm_load_si128(reinterpret_cast<const __m128i *>(&CHARS[0]));
+  const auto chars = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ' ', '\t', '\n', '\r');
 
   for (; end - pos >= 16; pos += 16) {
     const auto chunk = _mm_load_si128(reinterpret_cast<const __m128i *>(pos));
