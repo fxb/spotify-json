@@ -99,21 +99,8 @@ json_force_inline string decode_object_key(decode_context &context) {
 using array_type = array<value>;
 using object_type = object<value>;
 
-struct decode_state {
-  value current;
-  string current_key;
-};
-
-decode_state make_array_state() {
-  return{ array_type{}, string{} };
-}
-
-decode_state make_object_state(string key) {
-  return{ object_type{}, std::move(key) };
-}
-
 value decode_value(decode_context &context) {
-  stack<decode_state, 64> stack;
+  stack<value, 64> stack;
   value current;
 
   do {
@@ -125,7 +112,7 @@ value decode_value(decode_context &context) {
         skip_1(context, ']');
         current = array_type{};
       } else {
-        stack.push(make_array_state());
+        stack.push(array_type{});
         continue;
       }
     } else if (c == '{') {
@@ -134,7 +121,9 @@ value decode_value(decode_context &context) {
         skip_1(context, '}');
         current = object_type{};
       } else {
-        stack.push(make_object_state(decode_object_key(context)));
+        auto obj = object_type{};
+        obj.emplace(decode_object_key(context), value{});
+        stack.push(std::move(obj));
         continue;
       }
     } else if (c == 't') {
@@ -157,8 +146,8 @@ value decode_value(decode_context &context) {
     while (!stack.empty()) {
       skip_any_whitespace(context);
 
-      auto &state = stack.peek();
-      if (auto *arr = value_cast<array_type>(&state.current)) {
+      auto &container = stack.peek();
+      if (auto *arr = value_cast<array_type>(&container)) {
         arr->push_back(std::move(current));
 
         if (json_likely(peek(context) != ']')) {
@@ -167,19 +156,19 @@ value decode_value(decode_context &context) {
           break;
         } else {
           skip_1(context, ']');
-          current = std::move(state.current);
+          current = std::move(container);
           stack.pop();
         }
-      } else if (auto *obj = value_cast<object_type>(&state.current)) {
-        obj->emplace(std::move(state.current_key), std::move(current));
+      } else if (auto *obj = value_cast<object_type>(&container)) {
+        (*obj)[obj->size() - 1].second = std::move(current);
 
         if (json_likely(peek(context) != '}')) {
           skip_1(context, ',');
-          state.current_key = decode_object_key(context);
+          obj->emplace(decode_object_key(context), value{});
           break;
         } else {
           skip_1(context, '}');
-          current = std::move(state.current);
+          current = std::move(container);
           stack.pop();
         }
       }
