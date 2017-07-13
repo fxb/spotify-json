@@ -96,39 +96,60 @@ json_force_inline string decode_object_key(decode_context &context) {
   return key;
 }
 
-value decode_value(decode_context &context) {
-  stack<value, 64> stack;
-  string key;
-  value val;
+using array_type = array<value>;
+using object_type = object<value>;
 
-  using array_type = array<value>;
-  using object_type = object<value>;
+struct decode_state {
+  value current;
+  string current_key;
+};
+
+decode_state make_array_state() {
+  return{ array_type{}, string{} };
+}
+
+decode_state make_object_state(string key) {
+  return{ object_type{}, std::move(key) };
+}
+
+value decode_value(decode_context &context) {
+  stack<decode_state, 64> stack;
+  value current;
 
   do {
     const char c = peek(context);
     if (c == '[') {
       skip_1(context, '[');
       skip_any_whitespace(context);
-      stack.push(array_type{});
-      continue;
+      if (json_unlikely(peek(context) == ']')) {
+        skip_1(context, ']');
+        current = array_type{};
+      } else {
+        stack.push(make_array_state());
+        continue;
+      }
     } else if (c == '{') {
       skip_1(context, '{');
-      key = decode_object_key(context);
-      stack.push(object_type{});
-      continue;
+      if (json_unlikely(peek(context) == '}')) {
+        skip_1(context, '}');
+        current = object_type{};
+      } else {
+        stack.push(make_object_state(decode_object_key(context)));
+        continue;
+      }
     } else if (c == 't') {
       skip_true(context);
-      val = boolean{ true };
+      current = boolean{ true };
     } else if (c == 'f') {
       skip_false(context);
-      val = boolean{ false };
+      current = boolean{ false };
     } else if (c == 'n') {
       skip_null(context);
-      val = value{};
+      current = value{};
     } else if (c == '"') {
-      val = decode_string<string>(context);
+      current = decode_string<string>(context);
     } else if (c == '-' || is_digit(c)) {
-      val = decode_number(context);
+      current = decode_number(context);
     } else {
       fail(context, std::string("Encountered unexpected character '") + c + "'");
     }
@@ -136,8 +157,9 @@ value decode_value(decode_context &context) {
     while (!stack.empty()) {
       skip_any_whitespace(context);
 
-      if (auto *arr = value_cast<array_type>(&stack.peek())) {
-        arr->push_back(std::move(val));
+      auto &state = stack.peek();
+      if (auto *arr = value_cast<array_type>(&state.current)) {
+        arr->push_back(std::move(current));
 
         if (json_likely(peek(context) != ']')) {
           skip_1(context, ',');
@@ -145,24 +167,26 @@ value decode_value(decode_context &context) {
           break;
         } else {
           skip_1(context, ']');
-          val = stack.pop();
+          current = std::move(state.current);
+          stack.pop();
         }
-      } else if (auto *obj = value_cast<object_type>(&stack.peek())) {
-        obj->emplace(std::move(key), std::move(val));
+      } else if (auto *obj = value_cast<object_type>(&state.current)) {
+        obj->emplace(std::move(state.current_key), std::move(current));
 
         if (json_likely(peek(context) != '}')) {
           skip_1(context, ',');
-          key = decode_object_key(context);
+          state.current_key = decode_object_key(context);
           break;
         } else {
           skip_1(context, '}');
-          val = stack.pop();
+          current = std::move(state.current);
+          stack.pop();
         }
       }
     }
   } while (!stack.empty());
 
-  return val;
+  return current;
 }
 
 }  // namespace detail

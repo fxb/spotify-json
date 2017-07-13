@@ -82,6 +82,7 @@ void encode_value(encode_context &context, const value &v) {
       const auto size = arr->size();
       if (json_unlikely(size == 0)) {
         context.append("[]", 2);
+        stack.pop();
       } else if (state.offset < size) {
         context.append(state.offset == 0 ? '[' : ',');
         stack.push({(*arr)[state.offset++], 0});
@@ -93,6 +94,7 @@ void encode_value(encode_context &context, const value &v) {
       const auto size = obj->size();
       if (json_unlikely(size == 0)) {
         context.append("{}", 2);
+        stack.pop();
       } else if (state.offset < size) {
         context.append(state.offset == 0 ? '{' : ',');
         const auto &entry = (*obj)[state.offset++];
