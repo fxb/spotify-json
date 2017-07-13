@@ -111,6 +111,67 @@ void encode_value(encode_context &context, const value &v) {
   }
 }
 
+/*
+void encode_value(encode_context &context, const value &v) {
+  stack<state, 64> stack;
+
+  using array_type = array<value>;
+  using object_type = object<value>;
+
+  stack.push({v, 0});
+
+  while (!stack.empty()) {
+    auto &state = stack.peek();
+    if (const auto *arr = value_cast<array_type>(&state.value)) {
+      const auto size = arr->size();
+      if (json_unlikely(size == 0)) {
+        context.append("[]", 2);
+        stack.pop();
+      } else if (state.offset < size) {
+        context.append(state.offset == 0 ? "[\n" : ",\n", 2);
+        for (auto indent = 0; indent < stack.size(); ++indent) {
+          context.append("  ", 2);
+        }
+        stack.push({(*arr)[state.offset++], 0});
+      }
+      else {
+        stack.pop();
+        context.append('\n');
+        for (auto indent = 0; indent < stack.size(); ++indent) {
+          context.append("  ", 2);
+        }
+        context.append(']');
+      }
+    } else  if (const auto *obj = value_cast<object_type>(&state.value)) {
+      const auto size = obj->size();
+      if (json_unlikely(size == 0)) {
+        context.append("{}", 2);
+        stack.pop();
+      } else if (state.offset < size) {
+        context.append(state.offset == 0 ? "{\n" : ",\n", 2);
+        for (auto indent = 0; indent < stack.size(); ++indent) {
+          context.append("  ", 2);
+        }
+        const auto &entry = (*obj)[state.offset++];
+        encode_string(context, entry.first);
+        context.append(": ", 2);
+        stack.push({entry.second, 0});
+      }
+      else {
+        stack.pop();
+        context.append('\n');
+        for (auto indent = 0; indent < stack.size(); ++indent) {
+          context.append("  ", 2);
+        }
+        context.append('}');
+      }
+    }
+    else {
+      encode_simple_value(context, stack.pop().value);
+    }
+  }
+}
+*/
 }  // namespace detail
 }  // namespace json
 }  // namespace spotify
