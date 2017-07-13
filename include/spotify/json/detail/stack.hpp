@@ -47,7 +47,7 @@ struct stack {
       return top;
     } else {
       assert(_inline_size);
-      return _array[--_inline_size];
+      return std::move(_array[--_inline_size]);
     }
   }
 
