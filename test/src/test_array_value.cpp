@@ -182,8 +182,8 @@ BOOST_AUTO_TEST_CASE(json_value_codec_can_decode_and_encode) {
 }
 
 BOOST_AUTO_TEST_CASE(json_value_xxx) {
-  //string s1 = "fooooooooooooooooooooooooosafasfasfasfasfoooooooooooooooooooooo";
-  //value s2 = s1;
+  string s1 = "000000000011111111112222222222";
+  s1.push_back('3');
 
   std::ifstream stream("data/twitter.json");
   std::string data((std::istreambuf_iterator<char>(stream)),

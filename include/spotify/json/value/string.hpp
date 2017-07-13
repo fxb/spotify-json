@@ -69,7 +69,9 @@ inline string::string(const char *c_str) : string(c_str, std::strlen(c_str)) {}
 inline string::string(const char *c_str, std::size_t size) : value(detail::value_union::string) {
   if (size < 16) {
     std::memcpy(_.as_short_string.characters, c_str, size);
-    _.as_short_string.characters[size] = 0;
+    if (size < 15) {
+      _.as_short_string.characters[size] = 0;
+    }
     _.as_short_string.type = static_cast<detail::value_union::type>(15 - size);
   } else {
     const auto capacity_2exp = detail::value_union::capacity_2exp(size + 1);
@@ -92,7 +94,9 @@ inline string::string(It begin, It end) : value(detail::value_union::string) {
   const std::size_t size = std::distance(begin, end);
   if (size < 16) {
     std::copy(begin, end, _.as_short_string.characters);
-    _.as_short_string.characters[size] = 0;
+    if (size < 15) {
+      _.as_short_string.characters[size] = 0;
+    }
     _.as_short_string.type = static_cast<detail::value_union::type>(15 - size);
   } else {
     const auto capacity_2exp = detail::value_union::capacity_2exp(size + 1);
@@ -150,17 +154,19 @@ inline void string::reserve_string(std::size_t new_capacity) {
   _.as_string.characters.ptr = ptr;
   _.as_string.characters.ptr[size] = 0;
   _.as_string.size = size;
-  _.as_array.capacity_2exp = capacity_2exp;
+  _.as_string.capacity_2exp = capacity_2exp;
 }
 
 template <typename It>
 inline string &string::append(It begin, It end) {
   const std::size_t old_size = size();
   const std::size_t new_size = old_size + std::distance(begin, end);
-  reserve(new_size);
+  reserve(new_size + 1);
   if (is_short_string()) {
     std::copy(begin, end, _.as_short_string.characters + old_size);
-    _.as_short_string.characters[new_size] = 0;
+    if (new_size < 15) {
+      _.as_short_string.characters[new_size] = 0;
+    }
     _.as_short_string.type = static_cast<detail::value_union::type>(15 - new_size);
   } else {
     std::copy(begin, end, _.as_string.characters.ptr + old_size);
@@ -177,10 +183,12 @@ inline string &string::append(const char *c_str, std::size_t size) {
 inline void string::push_back(char c) {
   const std::size_t old_size = size();
   const std::size_t new_size = old_size + 1;
-  reserve(new_size);
+  reserve(new_size + 1);
   if (is_short_string()) {
     _.as_short_string.characters[old_size] = c;
-    _.as_short_string.characters[new_size] = 0;
+    if (new_size < 15) {
+      _.as_short_string.characters[new_size] = 0;
+    }
     _.as_short_string.type = static_cast<detail::value_union::type>(15 - new_size);
   } else {
     _.as_string.characters.ptr[old_size] = c;
