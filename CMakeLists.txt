@@ -71,9 +71,12 @@ set(json_codec_HEADERS
 set(json_detail_HEADERS
   include/spotify/json/detail/bitset.hpp
   include/spotify/json/detail/cpuid.hpp
+  include/spotify/json/detail/decode_floating_point.hpp
   include/spotify/json/detail/decode_helpers.hpp
+  include/spotify/json/detail/decode_integer.hpp
   include/spotify/json/detail/decode_string.hpp
   include/spotify/json/detail/decode_value.hpp
+  include/spotify/json/detail/decode_floating_point.hpp
   include/spotify/json/detail/encode_helpers.hpp
   include/spotify/json/detail/encode_integer.hpp
   include/spotify/json/detail/encode_string.hpp

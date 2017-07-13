@@ -16,7 +16,8 @@
 
 #include <spotify/json/detail/encode_value.hpp>
 
-#include <spotify/json/codec/number.hpp>
+#include <spotify/json/detail/encode_floating_point.hpp>
+#include <spotify/json/detail/encode_integer.hpp>
 #include <spotify/json/detail/encode_string.hpp>
 #include <spotify/json/detail/stack.hpp>
 #include <spotify/json/value/array.hpp>
@@ -40,11 +41,16 @@ void encode_simple_value(encode_context &context, const value &v) {
     case type::number: {
       const auto &n = value_cast<json::number &>(v);
       if (n.is_decimal()) {
-        codec::number_t<double>().encode(context, n.as<double>());
+        encode_floating_point(context, n.as<double>());
       } else if (n.is_signed()) {
-        codec::number_t<signed long long>().encode(context, n.as<signed long long>());
+        const auto val = n.as<signed long long>();
+        if (val < 0) {
+          encode_negative_integer(context, val);
+        } else {
+          encode_positive_integer(context, val);
+        }
       } else {
-        codec::number_t<unsigned long long>().encode(context, n.as<unsigned long long>());
+        encode_positive_integer(context, n.as<unsigned long long>());
       }
       break;
     }

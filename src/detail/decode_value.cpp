@@ -16,8 +16,9 @@
 
 #include <spotify/json/detail/decode_value.hpp>
 
-#include <spotify/json/codec/number.hpp>
 #include <spotify/json/detail/decode_helpers.hpp>
+#include <spotify/json/detail/decode_floating_point.hpp>
+#include <spotify/json/detail/decode_integer.hpp>
 #include <spotify/json/detail/decode_string.hpp>
 #include <spotify/json/detail/stack.hpp>
 #include <spotify/json/value/array.hpp>
@@ -38,13 +39,13 @@ json_force_inline bool is_digit(const char c) {
 number decode_number(decode_context &context) {
   const auto position = context.position;
 
-  bool is_signed = false;
+  bool is_negative = false;
   bool is_decimal = false;
 
   // Parse negative sign
   if (peek(context) == '-') {
     ++context.position;
-    is_signed = true;
+    is_negative = true;
   }
 
   // Parse integer part
@@ -79,11 +80,11 @@ number decode_number(decode_context &context) {
   context.position = position;
 
   if (is_decimal) {
-    return codec::number_t<double>().decode(context);
-  } else if (is_signed) {
-    return codec::number_t<signed long long>().decode(context);
+    return decode_floating_point<double>(context);
+  } else if (is_negative) {
+    return decode_negative_integer<signed long long>(context);
   } else {
-    return codec::number_t<unsigned long long>().decode(context);
+    return decode_positive_integer<unsigned long long>(context);
   }
 }
 
