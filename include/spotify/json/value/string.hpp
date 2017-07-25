@@ -18,6 +18,9 @@
 
 #include <cstddef>
 #include <cstring>
+#ifdef _MSC_VER
+#include <iterator>  // stdext::make_unchecked_array_iterator
+#endif
 #include <string>
 
 #include <spotify/json/value/value.hpp>
@@ -93,7 +96,11 @@ template <typename It>
 inline string::string(It begin, It end) : value(detail::value_union::string) {
   const std::size_t size = std::distance(begin, end);
   if (size < 16) {
+#ifdef _MSC_VER
+    std::copy(begin, end, stdext::make_unchecked_array_iterator(_.as_short_string.characters));
+#else
     std::copy(begin, end, _.as_short_string.characters);
+#endif
     if (size < 15) {
       _.as_short_string.characters[size] = 0;
     }
@@ -106,7 +113,11 @@ inline string::string(It begin, It end) : value(detail::value_union::string) {
       throw std::bad_alloc();
     }
     _.as_string.characters.ptr = ptr;
+#ifdef _MSC_VER
+    std::copy(begin, end, stdext::make_unchecked_array_iterator(_.as_string.characters.ptr));
+#else
     std::copy(begin, end, _.as_string.characters.ptr);
+#endif
     _.as_string.characters.ptr[size] = 0;
     _.as_string.size = size;
     _.as_string.capacity_2exp = capacity_2exp;
@@ -163,13 +174,21 @@ inline string &string::append(It begin, It end) {
   const std::size_t new_size = old_size + std::distance(begin, end);
   reserve(new_size + 1);
   if (is_short_string()) {
+#ifdef _MSC_VER
+    std::copy(begin, end, stdext::make_unchecked_array_iterator(_.as_short_string.characters + old_size));
+#else
     std::copy(begin, end, _.as_short_string.characters + old_size);
+#endif
     if (new_size < 15) {
       _.as_short_string.characters[new_size] = 0;
     }
     _.as_short_string.type = static_cast<detail::value_union::type>(15 - new_size);
   } else {
+#ifdef _MSC_VER
+    std::copy(begin, end, stdext::make_unchecked_array_iterator(_.as_string.characters.ptr + old_size));
+#else
     std::copy(begin, end, _.as_string.characters.ptr + old_size);
+#endif
     _.as_string.characters.ptr[new_size] = 0;
     _.as_string.size = new_size;
   }

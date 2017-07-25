@@ -20,6 +20,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#ifdef _MSC_VER
+#include <iterator>  // stdext::make_unchecked_array_iterator
+#endif
 #include <utility>
 
 namespace spotify {
@@ -220,13 +223,6 @@ inline void value_union::move_array(value_union &&other) {
   other.as_array.capacity_2exp = 0;
 }
 
-template<class T>
-inline void value_copy_n(const T *in, std::size_t size, T *out) {
-  while (size--) {
-    *out++ = *in++;
-  }
-}
-
 inline void value_union::duplicate_string() {
   const auto old_characters = as_string.characters.ptr;
   const auto new_characters = static_cast<char *>(std::malloc(capacity(as_string.capacity_2exp)));
@@ -242,7 +238,11 @@ inline void value_union::duplicate_object() {
   auto old_entries = as_object.entries.ptr;
   auto new_entries = new key_value[capacity(as_object.capacity_2exp)];
   as_object.entries.ptr = nullptr;
-  value_copy_n(old_entries, as_object.size, new_entries);
+#ifdef _MSC_VER
+  std::copy_n(old_entries, as_object.size, stdext::make_unchecked_array_iterator(new_entries));
+#else
+  std::copy_n(old_entries, as_object.size, new_entries);
+#endif
   as_object.entries.ptr = new_entries;
 }
 
@@ -250,7 +250,11 @@ inline void value_union::duplicate_array() {
   const auto old_elements = as_array.elements.ptr;
   const auto new_elements = new value_union[capacity(as_array.capacity_2exp)];
   as_array.elements.ptr = nullptr;
-  value_copy_n(old_elements, as_array.size, new_elements);
+#ifdef _MSC_VER
+  std::copy_n(old_elements, as_array.size, stdext::make_unchecked_array_iterator(new_elements));
+#else
+  std::copy_n(old_elements, as_array.size, new_elements);
+#endif
   as_array.elements.ptr = new_elements;
 }
 
